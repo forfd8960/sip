@@ -1,5 +1,6 @@
 #[derive(Debug, Clone)]
 pub enum Token {
+    Null,
     Ident(String),
     Integer(i64),
     Float(f64),
