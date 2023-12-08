@@ -1,10 +1,15 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     Null,
     Ident(String),
     Integer(i64),
     Float(f64),
     SString(String),
+    True(bool),
+    False(bool),
+
+    Var(String),   // keyword: var
+    Print(String), // keyword: print
 
     Assign(String), // =
     Plus(String),   // +
@@ -18,4 +23,6 @@ pub enum Token {
     GtEQ(String),  // >=
     EQ(String),    // ==
     NotEQ(String), // !=
+
+    EOF,
 }

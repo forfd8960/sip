@@ -2,7 +2,7 @@ use crate::tokens::Token;
 
 #[derive(Debug)]
 pub enum LexerError {
-    InvalidToken(String),
+    InvalidToken(char),
     InvalidString(String),
     InvalidNum(String),
 }
