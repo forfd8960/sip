@@ -1,6 +1,7 @@
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     Null,
+    WhiteSpace,
     Ident(String),
     Integer(i64),
     Float(f64),
@@ -11,11 +12,20 @@ pub enum Token {
     Var(String),   // keyword: var
     Print(String), // keyword: print
 
-    Assign(String), // =
-    Plus(String),   // +
-    Minus(String),  // -
-    Star(String),   // *
-    Slash(String),  // /
+    Assign(char), // =
+    Plus(char),   // +
+    Minus(char),  // -
+    Star(char),   // *
+    Slash(char),  // /
+
+    LParent(char), // left parenthesis (
+    RParent(char), // right parenthesis )
+    LBrace(char),  // left brace {
+    RBrace(char),  // right brace }
+    // left square brackets [
+    LSBracket(char),
+    // right square brackets ]
+    RSBracket(char),
 
     Lt(String),    // less than <
     LtEQ(String),  // <=
