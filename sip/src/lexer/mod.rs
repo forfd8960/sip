@@ -33,6 +33,7 @@ impl Lexer {
                 break;
             }
 
+            self.start = self.current;
             let tk_result = self.next_token();
             match tk_result {
                 Ok(Token::WhiteSpace) => {}
@@ -86,7 +87,14 @@ impl Lexer {
                     Ok(Token::Gt(">".to_string()))
                 }
             }
-            _ => Err(LexerError::InvalidToken(ch)),
+            _ => {
+                if ch.is_digit(10) {
+                    let n = self.parse_number()?;
+                    return Ok(Token::Integer(n));
+                }
+
+                Err(LexerError::InvalidToken(ch))
+            }
         }
     }
 
@@ -109,15 +117,41 @@ impl Lexer {
 
     fn advance(&mut self) -> char {
         self.current += 1;
-        println!("current pos: {}", self.current);
         self.chars[self.current - 1]
+    }
+
+    fn peek(&self) -> Option<char> {
+        if self.is_at_end() {
+            return None;
+        }
+
+        Some(self.chars[self.current])
+    }
+
+    fn parse_number(&mut self) -> Result<i64, LexerError> {
+        while let Some(d) = self.peek() {
+            if d.is_digit(10) {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        let num_text = String::from_iter(&self.chars[self.start..self.current]);
+        println!("num_text: {}", num_text);
+
+        let num_res = num_text.parse::<i64>();
+        match num_res {
+            Ok(n) => Ok(n),
+            Err(e) => Err(LexerError::InvalidNum(e.to_string())),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Lexer;
-    use crate::tokens::Token;
+    use crate::tokens::{self, Token};
 
     #[test]
     fn test_scan_tokens1() {
@@ -131,6 +165,61 @@ mod tests {
                 Token::Minus('-'),
                 Token::Star('*'),
                 Token::Slash('/'),
+                Token::EOF,
+            ],
+            tokens_res.unwrap()
+        );
+    }
+
+    #[test]
+    fn test_scan_tokens2() {
+        let input = "( { [ ) } ]";
+        let mut lexer = Lexer::new(input.to_string());
+        let tokens_res = lexer.scan_tokens();
+        assert_eq!(tokens_res.is_ok(), true);
+        assert_eq!(
+            vec![
+                Token::LParent('('),
+                Token::LBrace('{'),
+                Token::LSBracket('['),
+                Token::RParent(')'),
+                Token::RBrace('}'),
+                Token::RSBracket(']'),
+                Token::EOF,
+            ],
+            tokens_res.unwrap()
+        );
+    }
+
+    #[test]
+    fn test_scan_tokens3() {
+        let input = "< <= > >=";
+        let mut lexer = Lexer::new(input.to_string());
+        let tokens_res = lexer.scan_tokens();
+        assert_eq!(tokens_res.is_ok(), true);
+        assert_eq!(
+            vec![
+                Token::Lt('<'.to_string()),
+                Token::LtEQ("<=".to_string()),
+                Token::Gt(">".to_string()),
+                Token::GtEQ(">=".to_string()),
+                Token::EOF,
+            ],
+            tokens_res.unwrap()
+        );
+    }
+
+    #[test]
+    fn test_scan_tokens4() {
+        let input = "100 256";
+        let mut lexer = Lexer::new(input.to_string());
+        let tokens_res = lexer.scan_tokens();
+        assert_eq!(tokens_res.is_ok(), true);
+        println!("{:?}", tokens_res);
+        assert_eq!(
+            vec![
+                Token::Integer(100 as i64),
+                Token::Integer(256 as i64),
                 Token::EOF,
             ],
             tokens_res.unwrap()
