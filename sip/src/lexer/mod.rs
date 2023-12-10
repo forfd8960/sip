@@ -164,7 +164,7 @@ impl Lexer {
             return Err(LexerError::InvalidString(str_content));
         }
 
-        let str_content = String::from_iter(&self.chars[self.start..self.current]);
+        let str_content = String::from_iter(&self.chars[self.start + 1..self.current - 1]);
 
         Ok(Token::SString(str_content))
     }
@@ -259,8 +259,8 @@ mod tests {
         println!("{:?}", tokens_res);
         assert_eq!(
             vec![
-                Token::SString("\"Hello\"".to_string()),
-                Token::SString("\"World\"".to_string()),
+                Token::SString("Hello".to_string()),
+                Token::SString("World".to_string()),
                 Token::EOF,
             ],
             tokens_res.unwrap()
@@ -279,8 +279,8 @@ mod tests {
         assert_eq!(tokens_res.is_ok(), true);
         assert_eq!(
             vec![
-                Token::SString("\"Hello\"".to_string()),
-                Token::SString("\"World\"".to_string()),
+                Token::SString("Hello".to_string()),
+                Token::SString("World".to_string()),
                 Token::Integer(866 as i64),
                 Token::EOF,
             ],
