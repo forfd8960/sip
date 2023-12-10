@@ -138,16 +138,28 @@ impl Lexer {
     }
 
     fn parse_number(&mut self) -> Result<Token, LexerError> {
+        let mut is_float = false;
         while let Some(d) = self.peek() {
-            if d.is_digit(10) {
+            if d.eq(&'.') || d.is_digit(10) {
                 self.advance();
+                if d.eq(&'.') {
+                    is_float = true;
+                }
             } else {
                 break;
             }
         }
 
         let num_text = String::from_iter(&self.chars[self.start..self.current]);
-        println!("num_text: {}", num_text);
+
+        if is_float {
+            let num_res = num_text.parse::<f64>();
+            let res = match num_res {
+                Ok(n) => Ok(Token::Float(n)),
+                Err(e) => Err(LexerError::InvalidNum(e.to_string())),
+            };
+            return res;
+        }
 
         let num_res = num_text.parse::<i64>();
         match num_res {
@@ -348,5 +360,34 @@ mod tests {
             ],
             tokens_res.unwrap()
         );
+    }
+
+    #[test]
+    fn test_scan_float_num() {
+        let input = "1.26 0.6 123";
+
+        let mut lexer = Lexer::new(input.to_string());
+        let tokens_res = lexer.scan_tokens();
+        println!("{:?}", tokens_res);
+
+        assert_eq!(tokens_res.is_ok(), true);
+        assert_eq!(
+            vec![
+                Token::Float(1.26 as f64),
+                Token::Float(0.6 as f64),
+                Token::Integer(123 as i64),
+                Token::EOF,
+            ],
+            tokens_res.unwrap()
+        )
+    }
+
+    #[test]
+    fn test_parse_float() {
+        let num_text = "1.266";
+        match num_text.parse::<f64>() {
+            Ok(n) => println!("num: {}", n),
+            Err(e) => println!("err: {}", e),
+        }
     }
 }
