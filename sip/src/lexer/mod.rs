@@ -52,7 +52,7 @@ impl Lexer {
 
     fn next_token(&mut self) -> Result<Token, LexerError> {
         let ch = self.advance();
-        println!("ch: {}", ch);
+        println!("next token: ch: {}", ch);
 
         match ch {
             ' ' | '\n' | '\t' | '\r' => Ok(Token::WhiteSpace),
@@ -87,6 +87,7 @@ impl Lexer {
                     Ok(Token::Gt(">".to_string()))
                 }
             }
+            '"' => self.parse_string(),
             _ => {
                 if ch.is_digit(10) {
                     let n = self.parse_number()?;
@@ -145,6 +146,27 @@ impl Lexer {
             Ok(n) => Ok(n),
             Err(e) => Err(LexerError::InvalidNum(e.to_string())),
         }
+    }
+
+    fn parse_string(&mut self) -> Result<Token, LexerError> {
+        let mut valid_str = false;
+        while let Some(c) = self.peek() {
+            println!("peek: {}", c);
+            self.advance();
+            if c.eq(&'"') {
+                valid_str = true;
+                break;
+            }
+        }
+
+        if self.is_at_end() && !valid_str {
+            let str_content = String::from_iter(&self.chars[self.start..]);
+            return Err(LexerError::InvalidString(str_content));
+        }
+
+        let str_content = String::from_iter(&self.chars[self.start..self.current]);
+
+        Ok(Token::SString(str_content))
     }
 }
 
@@ -220,6 +242,46 @@ mod tests {
             vec![
                 Token::Integer(100 as i64),
                 Token::Integer(256 as i64),
+                Token::EOF,
+            ],
+            tokens_res.unwrap()
+        );
+    }
+
+    #[test]
+    fn test_scan_string_tokens() {
+        let input = r#""Hello" "World""#;
+
+        let mut lexer = Lexer::new(input.to_string());
+        let tokens_res = lexer.scan_tokens();
+
+        assert_eq!(tokens_res.is_ok(), true);
+        println!("{:?}", tokens_res);
+        assert_eq!(
+            vec![
+                Token::SString("\"Hello\"".to_string()),
+                Token::SString("\"World\"".to_string()),
+                Token::EOF,
+            ],
+            tokens_res.unwrap()
+        );
+    }
+
+    #[test]
+    fn test_scan_string1_tokens() {
+        let input = r#""Hello" "World" 866"#;
+        println!("input: {:?}", input);
+
+        let mut lexer = Lexer::new(input.to_string());
+        let tokens_res = lexer.scan_tokens();
+        println!("{:?}", tokens_res);
+
+        assert_eq!(tokens_res.is_ok(), true);
+        assert_eq!(
+            vec![
+                Token::SString("\"Hello\"".to_string()),
+                Token::SString("\"World\"".to_string()),
+                Token::Integer(866 as i64),
                 Token::EOF,
             ],
             tokens_res.unwrap()
