@@ -363,6 +363,28 @@ mod tests {
     }
 
     #[test]
+    fn test_scan_keyword_tokens1() {
+        let input = "if else for while return";
+
+        let mut lexer = Lexer::new(input.to_string());
+        let tokens_res = lexer.scan_tokens();
+        println!("{:?}", tokens_res);
+
+        assert_eq!(tokens_res.is_ok(), true);
+        assert_eq!(
+            vec![
+                Token::If,
+                Token::Else,
+                Token::For,
+                Token::While,
+                Token::Return,
+                Token::EOF,
+            ],
+            tokens_res.unwrap()
+        );
+    }
+
+    #[test]
     fn test_scan_float_num() {
         let input = "1.26 0.6 123";
 

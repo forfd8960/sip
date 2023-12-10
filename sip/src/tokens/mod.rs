@@ -11,6 +11,11 @@ pub enum Token {
 
     Var(String),   // keyword: var
     Print(String), // keyword: print
+    If,
+    Else,
+    For,
+    While,
+    Return,
 
     Assign(char), // =
     Plus(char),   // +
@@ -39,9 +44,14 @@ pub enum Token {
 
 pub fn get_keyword(kw: &str) -> Option<Token> {
     match kw {
-        "var" => Some(Token::Var("var".to_string())),
         "true" => Some(Token::True),
         "false" => Some(Token::False),
+        "var" => Some(Token::Var("var".to_string())),
+        "if" => Some(Token::If),
+        "else" => Some(Token::Else),
+        "for" => Some(Token::For),
+        "while" => Some(Token::While),
+        "return" => Some(Token::Return),
         "print" => Some(Token::Var("print".to_string())),
         _ => None,
     }
