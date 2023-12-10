@@ -1,4 +1,7 @@
-use crate::{errors::LexerError, tokens::Token};
+use crate::{
+    errors::LexerError,
+    tokens::{self, Token},
+};
 
 pub struct Lexer {
     text: String,
@@ -90,8 +93,13 @@ impl Lexer {
             '"' => self.parse_string(),
             _ => {
                 if ch.is_digit(10) {
-                    let n = self.parse_number()?;
-                    return Ok(Token::Integer(n));
+                    let tk = self.parse_number()?;
+                    return Ok(tk);
+                }
+
+                if ch.is_alphabetic() {
+                    let tk = self.parse_ident()?;
+                    return Ok(tk);
                 }
 
                 Err(LexerError::InvalidToken(ch))
@@ -129,7 +137,7 @@ impl Lexer {
         Some(self.chars[self.current])
     }
 
-    fn parse_number(&mut self) -> Result<i64, LexerError> {
+    fn parse_number(&mut self) -> Result<Token, LexerError> {
         while let Some(d) = self.peek() {
             if d.is_digit(10) {
                 self.advance();
@@ -143,7 +151,7 @@ impl Lexer {
 
         let num_res = num_text.parse::<i64>();
         match num_res {
-            Ok(n) => Ok(n),
+            Ok(n) => Ok(Token::Integer(n)),
             Err(e) => Err(LexerError::InvalidNum(e.to_string())),
         }
     }
@@ -151,7 +159,6 @@ impl Lexer {
     fn parse_string(&mut self) -> Result<Token, LexerError> {
         let mut valid_str = false;
         while let Some(c) = self.peek() {
-            println!("peek: {}", c);
             self.advance();
             if c.eq(&'"') {
                 valid_str = true;
@@ -165,15 +172,30 @@ impl Lexer {
         }
 
         let str_content = String::from_iter(&self.chars[self.start + 1..self.current - 1]);
-
         Ok(Token::SString(str_content))
+    }
+
+    fn parse_ident(&mut self) -> Result<Token, LexerError> {
+        while let Some(c) = self.peek() {
+            if !c.is_alphanumeric() {
+                break;
+            }
+            self.advance();
+        }
+
+        let ident = String::from_iter(&self.chars[self.start..self.current]);
+        if let Some(tk) = tokens::get_keyword(ident.as_str()) {
+            return Ok(tk);
+        }
+
+        Ok(Token::Ident(ident))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Lexer;
-    use crate::tokens::{self, Token};
+    use crate::tokens::Token;
 
     #[test]
     fn test_scan_tokens1() {
@@ -282,6 +304,46 @@ mod tests {
                 Token::SString("Hello".to_string()),
                 Token::SString("World".to_string()),
                 Token::Integer(866 as i64),
+                Token::EOF,
+            ],
+            tokens_res.unwrap()
+        );
+    }
+
+    #[test]
+    fn test_scan_ident_tokens() {
+        let input = "abc func1";
+
+        let mut lexer = Lexer::new(input.to_string());
+        let tokens_res = lexer.scan_tokens();
+        println!("{:?}", tokens_res);
+
+        assert_eq!(tokens_res.is_ok(), true);
+        assert_eq!(
+            vec![
+                Token::Ident("abc".to_string()),
+                Token::Ident("func1".to_string()),
+                Token::EOF,
+            ],
+            tokens_res.unwrap()
+        );
+    }
+
+    #[test]
+    fn test_scan_keyword_tokens() {
+        let input = "true false var print";
+
+        let mut lexer = Lexer::new(input.to_string());
+        let tokens_res = lexer.scan_tokens();
+        println!("{:?}", tokens_res);
+
+        assert_eq!(tokens_res.is_ok(), true);
+        assert_eq!(
+            vec![
+                Token::True,
+                Token::False,
+                Token::Var("var".to_string()),
+                Token::Var("print".to_string()),
                 Token::EOF,
             ],
             tokens_res.unwrap()

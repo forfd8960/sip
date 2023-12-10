@@ -6,8 +6,8 @@ pub enum Token {
     Integer(i64),
     Float(f64),
     SString(String),
-    True(bool),
-    False(bool),
+    True,
+    False,
 
     Var(String),   // keyword: var
     Print(String), // keyword: print
@@ -35,4 +35,14 @@ pub enum Token {
     NotEQ(String), // !=
 
     EOF,
+}
+
+pub fn get_keyword(kw: &str) -> Option<Token> {
+    match kw {
+        "var" => Some(Token::Var("var".to_string())),
+        "true" => Some(Token::True),
+        "false" => Some(Token::False),
+        "print" => Some(Token::Var("print".to_string())),
+        _ => None,
+    }
 }
