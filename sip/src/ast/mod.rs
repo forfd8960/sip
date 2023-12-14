@@ -5,8 +5,15 @@ pub trait Node {
     fn token_literal() -> String;
 }
 
-pub enum Expression {}
+#[derive(Debug, Clone, PartialEq)]
+pub enum Expression {
+    Identifier(tokens::Token),
+    // interger, string, true, false, etc
+    Literal(tokens::Token),
+    Group(Rc<Expression>),
+}
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
     Identifier(tokens::Token),
     VarStmt(tokens::Token, Expression), // var x = value
@@ -20,9 +27,7 @@ pub enum Statement {
 
     // op, value, -1, !true
     Unary(tokens::Token, Expression),
-
-    // interger, string, true, false, etc
-    Literal(tokens::Token),
+    ExpressionStmt(Expression),
 }
 
 pub struct Program {
