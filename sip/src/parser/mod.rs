@@ -48,10 +48,49 @@ impl Parser {
     }
 
     fn parse_var(&mut self) -> Result<Node, ParserError> {
+        let ident_res = self.consume(
+            Token::Ident("".to_string()),
+            "expect ident token".to_string(),
+        )?;
+
+        if self.check_and_advance(vec![Token::Assign('=')]) {}
+
         Ok(Node::VarStmt(
             Token::Var,
             Rc::new(Node::Literal(Token::Integer(100))),
         ))
+    }
+
+    fn parse_expr(&mut self) -> Result<Node, ParserError> {
+        let res = self.assignment()?;
+        Ok(res)
+    }
+
+    fn assignment(&mut self) -> Result<Node, ParserError> {
+        let exp = self.or()?;
+        if self.check_and_advance(vec![Token::Assign('=')]) {
+            let value = self.assignment()?;
+            let res = match exp {
+                Node::Identifier(ident) => Ok(Node::Assign(ident, Rc::new(value))),
+                _ => Err(ParserError::NotSupportedToken(Token::Unkown)),
+            };
+            return res;
+        }
+
+        Ok(exp)
+    }
+
+    fn or(&mut self) -> Result<Node, ParserError> {
+        let res = self.and()?;
+        if self.check_and_advance(vec![Token::Or]) {
+            return Err(ParserError::NotSupportedToken(Token::Unkown));
+        }
+
+        Ok(res)
+    }
+
+    fn and(&mut self) -> Result<Node, ParserError> {
+        Err(ParserError::NotSupportedToken(Token::Unkown))
     }
 
     fn check_and_advance(&mut self, tokens: Vec<Token>) -> bool {
@@ -65,12 +104,20 @@ impl Parser {
         false
     }
 
+    fn consume(&mut self, tk: Token, msg: String) -> Result<Token, ParserError> {
+        if self.check(tk) {
+            return Ok(self.advance());
+        }
+
+        Err(ParserError::ExpectedTokenNotFound(msg))
+    }
+
     fn check(&mut self, token: Token) -> bool {
         if self.is_at_end() {
             return false;
         }
 
-        self.peek() == token
+        self.peek().token_type() == token.token_type()
     }
 
     fn advance(&mut self) -> Token {

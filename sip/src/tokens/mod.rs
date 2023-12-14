@@ -23,6 +23,9 @@ pub enum Token {
     Star(char),   // *
     Slash(char),  // /
 
+    Or,  // ||
+    And, // &&
+
     LParent(char), // left parenthesis (
     RParent(char), // right parenthesis )
     LBrace(char),  // left brace {
@@ -40,6 +43,23 @@ pub enum Token {
     NotEQ(String), // !=
 
     EOF,
+
+    Unkown,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum TokenType {
+    Unkown,
+    Ident,
+}
+
+impl Token {
+    pub fn token_type(&self) -> TokenType {
+        match self {
+            Token::Ident(_) => TokenType::Ident,
+            _ => TokenType::Unkown,
+        }
+    }
 }
 
 pub fn get_keyword(kw: &str) -> Option<Token> {
