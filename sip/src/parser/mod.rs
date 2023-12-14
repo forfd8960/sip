@@ -42,9 +42,7 @@ impl Parser {
             return self.parse_var();
         }
 
-        Err(ParserError::NotSupportedToken(Token::SString(
-            "".to_string(),
-        )))
+        Err(ParserError::NotSupportedToken(Token::Unkown))
     }
 
     fn parse_var(&mut self) -> Result<Node, ParserError> {

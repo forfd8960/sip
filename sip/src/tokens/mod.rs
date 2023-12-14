@@ -23,8 +23,10 @@ pub enum Token {
     Star(char),   // *
     Slash(char),  // /
 
-    Or,  // ||
-    And, // &&
+    BitOr,  // |
+    Or,     // ||
+    BitAnd, // &
+    And,    // &&
 
     LParent(char), // left parenthesis (
     RParent(char), // right parenthesis )

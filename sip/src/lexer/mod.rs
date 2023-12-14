@@ -90,6 +90,20 @@ impl Lexer {
                     Ok(Token::Gt(">".to_string()))
                 }
             }
+            '|' => {
+                if self.is_current_match('|') {
+                    Ok(Token::Or)
+                } else {
+                    Ok(Token::BitOr)
+                }
+            }
+            '&' => {
+                if self.is_current_match('&') {
+                    Ok(Token::And)
+                } else {
+                    Ok(Token::BitAnd)
+                }
+            }
             '"' => self.parse_string(),
             _ => {
                 if ch.is_digit(10) {
@@ -393,6 +407,27 @@ mod tests {
                 Token::Float(0.6 as f64),
                 Token::Integer(123 as i64),
                 Token::EOF,
+            ],
+            tokens_res.unwrap()
+        )
+    }
+
+    #[test]
+    fn test_scan_or_and() {
+        let input = "| || & &&";
+
+        let mut lexer = Lexer::new(input.to_string());
+        let tokens_res = lexer.scan_tokens();
+        println!("{:?}", tokens_res);
+
+        assert_eq!(tokens_res.is_ok(), true);
+        assert_eq!(
+            vec![
+                Token::BitOr,
+                Token::Or,
+                Token::BitAnd,
+                Token::And,
+                Token::EOF
             ],
             tokens_res.unwrap()
         )
