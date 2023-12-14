@@ -9,7 +9,7 @@ pub enum Token {
     True,
     False,
 
-    Var(String),   // keyword: var
+    Var,           // keyword: var
     Print(String), // keyword: print
     If,
     Else,
@@ -46,13 +46,13 @@ pub fn get_keyword(kw: &str) -> Option<Token> {
     match kw {
         "true" => Some(Token::True),
         "false" => Some(Token::False),
-        "var" => Some(Token::Var("var".to_string())),
+        "var" => Some(Token::Var),
         "if" => Some(Token::If),
         "else" => Some(Token::Else),
         "for" => Some(Token::For),
         "while" => Some(Token::While),
         "return" => Some(Token::Return),
-        "print" => Some(Token::Var("print".to_string())),
+        "print" => Some(Token::Print("print".to_string())),
         _ => None,
     }
 }

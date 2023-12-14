@@ -1,41 +1,33 @@
 use crate::tokens;
 use std::rc::Rc;
 
-pub trait Node {
-    fn token_literal() -> String;
-}
-
 #[derive(Debug, Clone, PartialEq)]
-pub enum Expression {
+pub enum Node {
     Identifier(tokens::Token),
-    // interger, string, true, false, etc
-    Literal(tokens::Token),
-    Group(Rc<Expression>),
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Statement {
-    Identifier(tokens::Token),
-    VarStmt(tokens::Token, Expression), // var x = value
-    Assign(tokens::Token, Expression),  // x = value
+    VarStmt(tokens::Token, Rc<Node>), // var x = value
+    Assign(tokens::Token, Rc<Node>),  // x = value
 
     // left, operator, right
-    Logical(Expression, tokens::Token, Expression),
+    Logical(Rc<Node>, tokens::Token, Rc<Node>),
 
     // left, op, right: x + y
-    Binary(Expression, tokens::Token, Expression),
+    Binary(Rc<Node>, tokens::Token, Rc<Node>),
 
     // op, value, -1, !true
-    Unary(tokens::Token, Expression),
-    ExpressionStmt(Expression),
+    Unary(tokens::Token, Rc<Node>),
+    ExpressionStmt(Rc<Node>),
+    // interger, string, true, false, etc
+    Literal(tokens::Token),
+    Group(Rc<Node>),
 }
 
+#[derive(Debug, Clone)]
 pub struct Program {
-    stmts: Vec<Statement>,
+    stmts: Vec<Node>,
 }
 
-impl Node for Program {
-    fn token_literal() -> String {
-        "".to_string()
+impl Program {
+    pub fn new(nodes: Vec<Node>) -> Self {
+        Self { stmts: nodes }
     }
 }
