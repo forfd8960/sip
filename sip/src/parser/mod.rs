@@ -1,6 +1,11 @@
 use std::rc::Rc;
 
-use crate::{ast::Node, ast::Program, errors::ParserError, tokens::Token};
+use crate::{
+    ast::Node,
+    ast::Program,
+    errors::ParserError,
+    tokens::{Token, TokenType},
+};
 
 #[derive(Debug)]
 pub struct Parser {
@@ -38,7 +43,7 @@ impl Parser {
     }
 
     fn declare(&mut self) -> Result<Node, ParserError> {
-        if self.check_and_advance(vec![Token::Var]) {
+        if self.match_tks(vec![TokenType::Var]) {
             return self.parse_var();
         }
 
@@ -46,12 +51,9 @@ impl Parser {
     }
 
     fn parse_var(&mut self) -> Result<Node, ParserError> {
-        let ident_res = self.consume(
-            Token::Ident("".to_string()),
-            "expect ident token".to_string(),
-        )?;
+        let ident_res = self.consume(TokenType::Ident, "expect ident token".to_string())?;
 
-        if self.check_and_advance(vec![Token::Assign('=')]) {}
+        if self.match_tks(vec![TokenType::Assign]) {}
 
         Ok(Node::VarStmt(
             Token::Var,
@@ -66,7 +68,7 @@ impl Parser {
 
     fn assignment(&mut self) -> Result<Node, ParserError> {
         let exp = self.or()?;
-        if self.check_and_advance(vec![Token::Assign('=')]) {
+        if self.match_tks(vec![TokenType::Assign]) {
             let value = self.assignment()?;
             let res = match exp {
                 Node::Identifier(ident) => Ok(Node::Assign(ident, Rc::new(value))),
@@ -80,7 +82,7 @@ impl Parser {
 
     fn or(&mut self) -> Result<Node, ParserError> {
         let res = self.and()?;
-        if self.check_and_advance(vec![Token::Or]) {
+        if self.match_tks(vec![TokenType::Or]) {
             return Err(ParserError::NotSupportedToken(Token::Unkown));
         }
 
@@ -91,9 +93,51 @@ impl Parser {
         Err(ParserError::NotSupportedToken(Token::Unkown))
     }
 
-    fn check_and_advance(&mut self, tokens: Vec<Token>) -> bool {
-        for tk in tokens {
-            if self.check(tk) {
+    fn equality(&mut self) -> Result<Node, ParserError> {
+        Err(ParserError::NotSupportedToken(Token::Unkown))
+    }
+
+    fn comparison(&mut self) -> Result<Node, ParserError> {
+        Err(ParserError::NotSupportedToken(Token::Unkown))
+    }
+
+    fn term(&mut self) -> Result<Node, ParserError> {
+        Err(ParserError::NotSupportedToken(Token::Unkown))
+    }
+
+    fn factor(&mut self) -> Result<Node, ParserError> {
+        Err(ParserError::NotSupportedToken(Token::Unkown))
+    }
+
+    fn unary(&mut self) -> Result<Node, ParserError> {
+        Err(ParserError::NotSupportedToken(Token::Unkown))
+    }
+
+    fn primary(&mut self) -> Result<Node, ParserError> {
+        if self.match_tk(TokenType::True)
+            || self.match_tk(TokenType::False)
+            || self.match_tk(TokenType::Integer)
+            || self.match_tk(TokenType::Float)
+            || self.match_tk(TokenType::Null)
+        {
+            return Ok(Node::Literal(self.previous()));
+        } else if self.match_tk(TokenType::Ident) {
+            return Ok(Node::Identifier(self.previous()));
+        } else if self.match_tk(TokenType::LParent) {
+            let exp = self.parse_expr()?;
+            return Ok(Node::Group(Rc::new(exp)));
+        }
+
+        Err(ParserError::NotSupportedToken(Token::Unkown))
+    }
+
+    fn match_tk(&mut self, tk_type: TokenType) -> bool {
+        self.match_tks(vec![tk_type])
+    }
+
+    fn match_tks(&mut self, tk_types: Vec<TokenType>) -> bool {
+        for tk_tp in tk_types {
+            if self.check(tk_tp) {
                 self.advance();
                 return true;
             }
@@ -102,20 +146,20 @@ impl Parser {
         false
     }
 
-    fn consume(&mut self, tk: Token, msg: String) -> Result<Token, ParserError> {
-        if self.check(tk) {
+    fn consume(&mut self, tk_type: TokenType, msg: String) -> Result<Token, ParserError> {
+        if self.check(tk_type) {
             return Ok(self.advance());
         }
 
         Err(ParserError::ExpectedTokenNotFound(msg))
     }
 
-    fn check(&mut self, token: Token) -> bool {
+    fn check(&mut self, tk_type: TokenType) -> bool {
         if self.is_at_end() {
             return false;
         }
 
-        self.peek().token_type() == token.token_type()
+        self.peek().token_type() == tk_type
     }
 
     fn advance(&mut self) -> Token {

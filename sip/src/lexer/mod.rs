@@ -365,7 +365,13 @@ mod tests {
 
         assert_eq!(tokens_res.is_ok(), true);
         assert_eq!(
-            vec![Token::True, Token::False, Token::Var, Token::EOF],
+            vec![
+                Token::True,
+                Token::False,
+                Token::Var,
+                Token::Print("print".to_string()),
+                Token::EOF
+            ],
             tokens_res.unwrap()
         );
     }

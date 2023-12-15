@@ -52,13 +52,34 @@ pub enum Token {
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     Unkown,
+    Null,
     Ident,
+    Var,
+    Assign,
+    Or,
+    And,
+    True,
+    False,
+    Integer,
+    Float,
+    LParent,
+    RParent,
 }
 
 impl Token {
     pub fn token_type(&self) -> TokenType {
         match self {
             Token::Ident(_) => TokenType::Ident,
+            Token::Var => TokenType::Var,
+            Token::Assign(_) => TokenType::Assign,
+            Token::Or => TokenType::Or,
+            Token::And => TokenType::And,
+            Token::True => TokenType::True,
+            Token::False => TokenType::False,
+            Token::Integer(_) => TokenType::Integer,
+            Token::Float(_) => TokenType::Float,
+            Token::LParent(_) => TokenType::LParent,
+            Token::RParent(_) => TokenType::RParent,
             _ => TokenType::Unkown,
         }
     }
