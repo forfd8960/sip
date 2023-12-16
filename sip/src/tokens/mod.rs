@@ -63,6 +63,7 @@ pub enum TokenType {
     False,
     Integer,
     Float,
+    String,
     LParent,
     RParent,
     Lt,    // <
@@ -98,6 +99,7 @@ impl Token {
             Token::False => TokenType::False,
             Token::Integer(_) => TokenType::Integer,
             Token::Float(_) => TokenType::Float,
+            Token::SString(_) => TokenType::String,
             Token::LParent(_) => TokenType::LParent,
             Token::RParent(_) => TokenType::RParent,
             Token::Slash(_) => TokenType::Slash,

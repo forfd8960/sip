@@ -143,7 +143,10 @@ impl Parser {
     fn or(&mut self) -> Result<Node, ParserError> {
         let res = self.and()?;
         if self.match_tk(TokenType::Or) {
-            return Err(ParserError::NotSupportedToken(Token::Unkown));
+            let op = self.previous();
+            let exp = self.and()?;
+
+            return Ok(Node::Logical(Rc::new(res), op, Rc::new(exp)));
         }
 
         Ok(res)
@@ -152,7 +155,9 @@ impl Parser {
     fn and(&mut self) -> Result<Node, ParserError> {
         let exp = self.equality()?;
         if self.match_tk(TokenType::And) {
-            return Err(ParserError::NotSupportedToken(Token::Unkown));
+            let op = self.previous();
+            let r_exp = self.equality()?;
+            return Ok(Node::Logical(Rc::new(exp), op, Rc::new(r_exp)));
         }
         Ok(exp)
     }
@@ -160,7 +165,9 @@ impl Parser {
     fn equality(&mut self) -> Result<Node, ParserError> {
         let exp = self.comparison()?;
         if self.match_tks(vec![TokenType::EQ, TokenType::NotEQ]) {
-            return Err(ParserError::NotSupportedToken(Token::Unkown));
+            let op = self.previous();
+            let r_exp = self.comparison()?;
+            return Ok(Node::Binary(Rc::new(exp), op, Rc::new(r_exp)));
         }
         Ok(exp)
     }
@@ -175,7 +182,9 @@ impl Parser {
             TokenType::EQ,
             TokenType::NotEQ,
         ]) {
-            return Err(ParserError::NotSupportedToken(Token::Unkown));
+            let op = self.previous();
+            let r_exp = self.term()?;
+            return Ok(Node::Binary(Rc::new(exp), op, Rc::new(r_exp)));
         }
         Ok(exp)
     }
@@ -183,7 +192,9 @@ impl Parser {
     fn term(&mut self) -> Result<Node, ParserError> {
         let exp = self.factor()?;
         if self.match_tks(vec![TokenType::Plus, TokenType::Minus]) {
-            return Err(ParserError::NotSupportedToken(Token::Unkown));
+            let op = self.previous();
+            let r_exp = self.factor()?;
+            return Ok(Node::Binary(Rc::new(exp), op, Rc::new(r_exp)));
         }
         Ok(exp)
     }
@@ -191,7 +202,9 @@ impl Parser {
     fn factor(&mut self) -> Result<Node, ParserError> {
         let exp = self.unary()?;
         if self.match_tks(vec![TokenType::Slash, TokenType::Star]) {
-            return Err(ParserError::NotSupportedToken(Token::Unkown));
+            let op = self.previous();
+            let r_exp = self.unary()?;
+            return Ok(Node::Binary(Rc::new(exp), op, Rc::new(r_exp)));
         }
 
         Ok(exp)
@@ -199,7 +212,9 @@ impl Parser {
 
     fn unary(&mut self) -> Result<Node, ParserError> {
         if self.match_tks(vec![TokenType::Minus, TokenType::Bang]) {
-            return Err(ParserError::NotSupportedToken(Token::Unkown));
+            let op = self.previous();
+            let val = self.unary()?;
+            return Ok(Node::Unary(op, Rc::new(val)));
         }
         self.primary()
     }
@@ -209,6 +224,7 @@ impl Parser {
             || self.match_tk(TokenType::False)
             || self.match_tk(TokenType::Integer)
             || self.match_tk(TokenType::Float)
+            || self.match_tk(TokenType::String)
             || self.match_tk(TokenType::Null)
         {
             return Ok(Node::Literal(self.previous()));
@@ -219,7 +235,7 @@ impl Parser {
             return Ok(Node::Group(Rc::new(exp)));
         }
 
-        Err(ParserError::NotSupportedToken(Token::Unkown))
+        Err(ParserError::NotSupportedToken(self.peek()))
     }
 
     fn match_tk(&mut self, tk_type: TokenType) -> bool {
