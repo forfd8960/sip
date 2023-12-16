@@ -77,6 +77,13 @@ pub enum TokenType {
     Minus, // -
     // !
     Bang,
+    If,
+    Else,
+    For,
+    Return,
+    While,
+    LBrace,
+    RBrace,
 }
 
 impl Token {
@@ -104,6 +111,13 @@ impl Token {
             Token::GtEQ(_) => TokenType::GtEQ,
             Token::EQ(_) => TokenType::EQ,
             Token::NotEQ(_) => TokenType::NotEQ,
+            Token::If => TokenType::If,
+            Token::Else => TokenType::Else,
+            Token::For => TokenType::For,
+            Token::While => TokenType::While,
+            Token::Return => TokenType::Return,
+            Token::LBrace(_) => TokenType::LBrace,
+            Token::RBrace(_) => TokenType::RBrace,
             _ => TokenType::Unkown,
         }
     }

@@ -47,7 +47,7 @@ impl Parser {
             return self.parse_var();
         }
 
-        Err(ParserError::NotSupportedToken(Token::Unkown))
+        self.parse_stmt()
     }
 
     fn parse_var(&mut self) -> Result<Node, ParserError> {
@@ -61,9 +61,69 @@ impl Parser {
         Ok(Node::VarStmt(ident, Rc::new(init_expr)))
     }
 
+    fn parse_stmt(&mut self) -> Result<Node, ParserError> {
+        if self.match_tk(TokenType::If) {
+            return self.parse_if();
+        }
+        if self.match_tk(TokenType::For) {
+            return self.parse_for();
+        }
+
+        if self.match_tk(TokenType::While) {
+            return self.parse_while();
+        }
+
+        if self.match_tk(TokenType::Return) {
+            return self.parse_return();
+        }
+
+        if self.match_tk(TokenType::LBrace) {
+            return self.parse_block();
+        }
+
+        self.parse_expr_stmt()
+    }
+
     fn parse_expr(&mut self) -> Result<Node, ParserError> {
         let res = self.assignment()?;
         Ok(res)
+    }
+
+    fn parse_if(&mut self) -> Result<Node, ParserError> {
+        Ok(Node::Null)
+    }
+
+    fn parse_for(&mut self) -> Result<Node, ParserError> {
+        Ok(Node::Null)
+    }
+
+    fn parse_while(&mut self) -> Result<Node, ParserError> {
+        Ok(Node::Null)
+    }
+
+    fn parse_return(&mut self) -> Result<Node, ParserError> {
+        Ok(Node::Null)
+    }
+
+    fn parse_block(&mut self) -> Result<Node, ParserError> {
+        let mut stmts: Vec<Node> = vec![];
+        loop {
+            if self.is_at_end() || self.check(TokenType::RBrace) {
+                break;
+            }
+
+            let stmt = self.declare()?;
+            stmts.push(stmt);
+        }
+
+        self.consume(TokenType::RBrace, "expect } after block".to_string())?;
+
+        Ok(Node::Block(stmts))
+    }
+
+    fn parse_expr_stmt(&mut self) -> Result<Node, ParserError> {
+        let exp = self.parse_expr()?;
+        Ok(Node::ExpressionStmt(Rc::new(exp)))
     }
 
     fn assignment(&mut self) -> Result<Node, ParserError> {

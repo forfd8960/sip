@@ -19,6 +19,7 @@ pub enum Node {
     // interger, string, true, false, etc
     Literal(tokens::Token),
     Group(Rc<Node>),
+    Block(Vec<Node>),
     Null,
 }
 
