@@ -81,7 +81,7 @@ impl Parser {
             return self.parse_block();
         }
 
-        self.parse_expr_stmt()
+        self.parse_expr()
     }
 
     fn parse_expr(&mut self) -> Result<Node, ParserError> {
@@ -311,6 +311,64 @@ mod tests {
             Program::new(vec![Node::VarStmt(
                 Token::Ident("x".to_string()),
                 Rc::new(Node::Literal(Token::Integer(100)))
+            )]),
+            res.unwrap()
+        );
+    }
+
+    #[test]
+    fn test_parse_literal() {
+        let mut parser = Parser::new(vec![
+            Token::Integer(100),
+            Token::Float(66.88),
+            Token::SString("Hello".to_string()),
+            Token::True,
+            Token::False,
+            Token::EOF,
+        ]);
+        let res = parser.parse();
+        println!("parse result: {:?}", res);
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(
+            Program::new(vec![
+                Node::Literal(Token::Integer(100)),
+                Node::Literal(Token::Float(66.88)),
+                Node::Literal(Token::SString("Hello".to_string())),
+                Node::Literal(Token::True),
+                Node::Literal(Token::False),
+            ]),
+            res.unwrap()
+        );
+    }
+
+    #[test]
+    fn test_parse_and_or() {
+        let mut parser = Parser::new(vec![
+            Token::Ident("a".to_string()),
+            Token::Lt("<".to_string()),
+            Token::Ident("b".to_string()),
+            Token::And,
+            Token::Ident("b".to_string()),
+            Token::Gt(">".to_string()),
+            Token::Ident("c".to_string()),
+            Token::EOF,
+        ]);
+        let res = parser.parse();
+        println!("parse result: {:?}", res);
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(
+            Program::new(vec![Node::Logical(
+                Rc::new(Node::Binary(
+                    Rc::new(Node::Identifier(Token::Ident("a".to_string()))),
+                    Token::Lt("<".to_string()),
+                    Rc::new(Node::Identifier(Token::Ident("b".to_string()))),
+                )),
+                Token::And,
+                Rc::new(Node::Binary(
+                    Rc::new(Node::Identifier(Token::Ident("b".to_string()))),
+                    Token::Gt(">".to_string()),
+                    Rc::new(Node::Identifier(Token::Ident("c".to_string()))),
+                )),
             )]),
             res.unwrap()
         );
