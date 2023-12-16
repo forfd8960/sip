@@ -68,7 +68,7 @@ impl Parser {
 
     fn assignment(&mut self) -> Result<Node, ParserError> {
         let exp = self.or()?;
-        if self.match_tks(vec![TokenType::Assign]) {
+        if self.match_tk(TokenType::Assign) {
             let value = self.assignment()?;
             let res = match exp {
                 Node::Identifier(ident) => Ok(Node::Assign(ident, Rc::new(value))),
@@ -90,27 +90,58 @@ impl Parser {
     }
 
     fn and(&mut self) -> Result<Node, ParserError> {
-        Err(ParserError::NotSupportedToken(Token::Unkown))
+        let exp = self.equality()?;
+        if self.match_tk(TokenType::And) {
+            return Err(ParserError::NotSupportedToken(Token::Unkown));
+        }
+        Ok(exp)
     }
 
     fn equality(&mut self) -> Result<Node, ParserError> {
-        Err(ParserError::NotSupportedToken(Token::Unkown))
+        let exp = self.comparison()?;
+        if self.match_tks(vec![TokenType::EQ, TokenType::NotEQ]) {
+            return Err(ParserError::NotSupportedToken(Token::Unkown));
+        }
+        Ok(exp)
     }
 
     fn comparison(&mut self) -> Result<Node, ParserError> {
-        Err(ParserError::NotSupportedToken(Token::Unkown))
+        let exp = self.term()?;
+        if self.match_tks(vec![
+            TokenType::Lt,
+            TokenType::LtEQ,
+            TokenType::Gt,
+            TokenType::GtEQ,
+            TokenType::EQ,
+            TokenType::NotEQ,
+        ]) {
+            return Err(ParserError::NotSupportedToken(Token::Unkown));
+        }
+        Ok(exp)
     }
 
     fn term(&mut self) -> Result<Node, ParserError> {
-        Err(ParserError::NotSupportedToken(Token::Unkown))
+        let exp = self.factor()?;
+        if self.match_tks(vec![TokenType::PLus, TokenType::Minus]) {
+            return Err(ParserError::NotSupportedToken(Token::Unkown));
+        }
+        Ok(exp)
     }
 
     fn factor(&mut self) -> Result<Node, ParserError> {
-        Err(ParserError::NotSupportedToken(Token::Unkown))
+        let exp = self.unary()?;
+        if self.match_tks(vec![TokenType::Slash, TokenType::Star]) {
+            return Err(ParserError::NotSupportedToken(Token::Unkown));
+        }
+
+        Ok(exp)
     }
 
     fn unary(&mut self) -> Result<Node, ParserError> {
-        Err(ParserError::NotSupportedToken(Token::Unkown))
+        if self.match_tks(vec![TokenType::Minus, TokenType::Bang]) {
+            return Err(ParserError::NotSupportedToken(Token::Unkown));
+        }
+        self.primary()
     }
 
     fn primary(&mut self) -> Result<Node, ParserError> {

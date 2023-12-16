@@ -69,6 +69,7 @@ impl Lexer {
             '-' => Ok(Token::Minus(ch)),
             '*' => Ok(Token::Star(ch)),
             '/' => Ok(Token::Slash(ch)),
+            '!' => Ok(Token::Bang),
             '=' => {
                 if self.is_current_match('=') {
                     Ok(Token::EQ("==".to_string()))

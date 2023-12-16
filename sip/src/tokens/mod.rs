@@ -22,6 +22,7 @@ pub enum Token {
     Minus(char),  // -
     Star(char),   // *
     Slash(char),  // /
+    Bang,         // !
 
     BitOr,  // |
     Or,     // ||
@@ -64,6 +65,18 @@ pub enum TokenType {
     Float,
     LParent,
     RParent,
+    Lt,    // <
+    LtEQ,  // <=
+    Gt,    // >
+    GtEQ,  // >=
+    EQ,    // ==
+    NotEQ, // !=
+    Slash, // /
+    Star,  // *
+    PLus,  // +
+    Minus, // -
+    // !
+    Bang,
 }
 
 impl Token {
