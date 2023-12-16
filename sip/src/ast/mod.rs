@@ -19,9 +19,10 @@ pub enum Node {
     // interger, string, true, false, etc
     Literal(tokens::Token),
     Group(Rc<Node>),
+    Null,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Program {
     stmts: Vec<Node>,
 }

@@ -9,8 +9,8 @@ pub enum Token {
     True,
     False,
 
-    Var,           // keyword: var
-    Print(String), // keyword: print
+    Var,   // keyword: var
+    Print, // keyword: print
     If,
     Else,
     For,
@@ -73,7 +73,7 @@ pub enum TokenType {
     NotEQ, // !=
     Slash, // /
     Star,  // *
-    PLus,  // +
+    Plus,  // +
     Minus, // -
     // !
     Bang,
@@ -93,6 +93,17 @@ impl Token {
             Token::Float(_) => TokenType::Float,
             Token::LParent(_) => TokenType::LParent,
             Token::RParent(_) => TokenType::RParent,
+            Token::Slash(_) => TokenType::Slash,
+            Token::Star(_) => TokenType::Star,
+            Token::Plus(_) => TokenType::Plus,
+            Token::Minus(_) => TokenType::Minus,
+            Token::Bang => TokenType::Bang,
+            Token::Lt(_) => TokenType::Lt,
+            Token::LtEQ(_) => TokenType::LtEQ,
+            Token::Gt(_) => TokenType::Gt,
+            Token::GtEQ(_) => TokenType::GtEQ,
+            Token::EQ(_) => TokenType::EQ,
+            Token::NotEQ(_) => TokenType::NotEQ,
             _ => TokenType::Unkown,
         }
     }
@@ -108,7 +119,7 @@ pub fn get_keyword(kw: &str) -> Option<Token> {
         "for" => Some(Token::For),
         "while" => Some(Token::While),
         "return" => Some(Token::Return),
-        "print" => Some(Token::Print("print".to_string())),
+        "print" => Some(Token::Print),
         _ => None,
     }
 }

@@ -43,7 +43,7 @@ impl Parser {
     }
 
     fn declare(&mut self) -> Result<Node, ParserError> {
-        if self.match_tks(vec![TokenType::Var]) {
+        if self.match_tk(TokenType::Var) {
             return self.parse_var();
         }
 
@@ -51,14 +51,14 @@ impl Parser {
     }
 
     fn parse_var(&mut self) -> Result<Node, ParserError> {
-        let ident_res = self.consume(TokenType::Ident, "expect ident token".to_string())?;
+        let ident = self.consume(TokenType::Ident, "expect ident token".to_string())?;
 
-        if self.match_tks(vec![TokenType::Assign]) {}
+        let mut init_expr = Node::Null;
+        if self.match_tk(TokenType::Assign) {
+            init_expr = self.parse_expr()?;
+        }
 
-        Ok(Node::VarStmt(
-            Token::Var,
-            Rc::new(Node::Literal(Token::Integer(100))),
-        ))
+        Ok(Node::VarStmt(ident, Rc::new(init_expr)))
     }
 
     fn parse_expr(&mut self) -> Result<Node, ParserError> {
@@ -82,7 +82,7 @@ impl Parser {
 
     fn or(&mut self) -> Result<Node, ParserError> {
         let res = self.and()?;
-        if self.match_tks(vec![TokenType::Or]) {
+        if self.match_tk(TokenType::Or) {
             return Err(ParserError::NotSupportedToken(Token::Unkown));
         }
 
@@ -122,7 +122,7 @@ impl Parser {
 
     fn term(&mut self) -> Result<Node, ParserError> {
         let exp = self.factor()?;
-        if self.match_tks(vec![TokenType::PLus, TokenType::Minus]) {
+        if self.match_tks(vec![TokenType::Plus, TokenType::Minus]) {
             return Err(ParserError::NotSupportedToken(Token::Unkown));
         }
         Ok(exp)
@@ -210,5 +210,33 @@ impl Parser {
     }
     fn peek(&self) -> Token {
         self.tokens[self.current].clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Parser;
+    use crate::{ast::Node, ast::Program, tokens::Token};
+    use std::rc::Rc;
+
+    #[test]
+    fn test_parse_var() {
+        let mut parser = Parser::new(vec![
+            Token::Var,
+            Token::Ident("x".to_string()),
+            Token::Assign('='),
+            Token::Integer(100),
+            Token::EOF,
+        ]);
+        let res = parser.parse();
+        println!("parse result: {:?}", res);
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(
+            Program::new(vec![Node::VarStmt(
+                Token::Ident("x".to_string()),
+                Rc::new(Node::Literal(Token::Integer(100)))
+            )]),
+            res.unwrap()
+        );
     }
 }

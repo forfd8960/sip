@@ -69,7 +69,12 @@ impl Lexer {
             '-' => Ok(Token::Minus(ch)),
             '*' => Ok(Token::Star(ch)),
             '/' => Ok(Token::Slash(ch)),
-            '!' => Ok(Token::Bang),
+            '!' => {
+                if self.is_current_match('=') {
+                    return Ok(Token::NotEQ("!=".to_string()));
+                }
+                Ok(Token::Bang)
+            }
             '=' => {
                 if self.is_current_match('=') {
                     Ok(Token::EQ("==".to_string()))
@@ -264,7 +269,7 @@ mod tests {
 
     #[test]
     fn test_scan_tokens3() {
-        let input = "< <= > >=";
+        let input = "< <= > >= ! !=";
         let mut lexer = Lexer::new(input.to_string());
         let tokens_res = lexer.scan_tokens();
         assert_eq!(tokens_res.is_ok(), true);
@@ -274,6 +279,8 @@ mod tests {
                 Token::LtEQ("<=".to_string()),
                 Token::Gt(">".to_string()),
                 Token::GtEQ(">=".to_string()),
+                Token::Bang,
+                Token::NotEQ("!=".to_string()),
                 Token::EOF,
             ],
             tokens_res.unwrap()
@@ -370,7 +377,7 @@ mod tests {
                 Token::True,
                 Token::False,
                 Token::Var,
-                Token::Print("print".to_string()),
+                Token::Print,
                 Token::EOF
             ],
             tokens_res.unwrap()
