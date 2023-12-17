@@ -90,7 +90,23 @@ impl Parser {
     }
 
     fn parse_if(&mut self) -> Result<Node, ParserError> {
-        Ok(Node::Null)
+        self.consume(TokenType::LParent, "expect ( after if".to_string())?;
+
+        let cond = self.parse_expr()?;
+        self.consume(TokenType::RParent, "expect ) after if".to_string())?;
+
+        let then = self.parse_stmt()?;
+
+        let mut else_then = Node::Null;
+        if self.match_tk(TokenType::Else) {
+            else_then = self.parse_stmt()?;
+        }
+
+        Ok(Node::IfStmt(
+            Rc::new(cond),
+            Rc::new(then),
+            Rc::new(else_then),
+        ))
     }
 
     fn parse_for(&mut self) -> Result<Node, ParserError> {
@@ -342,6 +358,33 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_binary() {
+        let mut parser = Parser::new(vec![
+            Token::Integer(100),
+            Token::Plus('+'),
+            Token::Integer(1000),
+            Token::Star('*'),
+            Token::Integer(2),
+            Token::EOF,
+        ]);
+        let res = parser.parse();
+        println!("parse result: {:?}", res);
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(
+            Program::new(vec![Node::Binary(
+                Rc::new(Node::Literal(Token::Integer(100))),
+                Token::Plus('+'),
+                Rc::new(Node::Binary(
+                    Rc::new(Node::Literal(Token::Integer(1000))),
+                    Token::Star('*'),
+                    Rc::new(Node::Literal(Token::Integer(2)))
+                ))
+            )]),
+            res.unwrap()
+        );
+    }
+
+    #[test]
     fn test_parse_and_or() {
         let mut parser = Parser::new(vec![
             Token::Ident("a".to_string()),
@@ -369,6 +412,39 @@ mod tests {
                     Token::Gt(">".to_string()),
                     Rc::new(Node::Identifier(Token::Ident("c".to_string()))),
                 )),
+            )]),
+            res.unwrap()
+        );
+    }
+
+    #[test]
+    fn test_parse_if() {
+        let mut parser = Parser::new(vec![
+            Token::If,
+            Token::LParent('('),
+            Token::Ident("b".to_string()),
+            Token::Gt(">".to_string()),
+            Token::Ident("a".to_string()),
+            Token::RParent(')'),
+            Token::LBrace('{'),
+            Token::SString("then stmt".to_string()),
+            Token::RBrace('}'),
+            Token::EOF,
+        ]);
+        let res = parser.parse();
+        println!("parse result: {:?}", res);
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(
+            Program::new(vec![Node::IfStmt(
+                Rc::new(Node::Binary(
+                    Rc::new(Node::Identifier(Token::Ident("b".to_string()))),
+                    Token::Gt(">".to_string()),
+                    Rc::new(Node::Identifier(Token::Ident("a".to_string()))),
+                )),
+                Rc::new(Node::Block(vec![Node::Literal(Token::SString(
+                    "then stmt".to_string()
+                ))])),
+                Rc::new(Node::Null)
             )]),
             res.unwrap()
         );

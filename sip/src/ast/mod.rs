@@ -4,8 +4,9 @@ use std::rc::Rc;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Node {
     Identifier(tokens::Token),
-    VarStmt(tokens::Token, Rc<Node>), // var x = value
-    Assign(tokens::Token, Rc<Node>),  // x = value
+    VarStmt(tokens::Token, Rc<Node>),     // var x = value
+    Assign(tokens::Token, Rc<Node>),      // x = value
+    IfStmt(Rc<Node>, Rc<Node>, Rc<Node>), // cond, then, elseThen
 
     // left, operator, right
     Logical(Rc<Node>, tokens::Token, Rc<Node>),
