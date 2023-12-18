@@ -448,6 +448,32 @@ mod tests {
     }
 
     #[test]
+    fn test_scan_if() {
+        let input = "if (a > b) { true }";
+
+        let mut lexer = Lexer::new(input.to_string());
+        let tokens_res = lexer.scan_tokens();
+        println!("{:?}", tokens_res);
+
+        assert_eq!(tokens_res.is_ok(), true);
+        assert_eq!(
+            vec![
+                Token::If,
+                Token::LParent('('),
+                Token::Ident("a".to_string()),
+                Token::Gt(">".to_string()),
+                Token::Ident("b".to_string()),
+                Token::RParent(')'),
+                Token::LBrace('{'),
+                Token::True,
+                Token::RBrace('}'),
+                Token::EOF
+            ],
+            tokens_res.unwrap()
+        )
+    }
+
+    #[test]
     fn test_parse_float() {
         let num_text = "1.266";
         match num_text.parse::<f64>() {
