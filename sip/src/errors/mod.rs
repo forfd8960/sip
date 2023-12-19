@@ -43,11 +43,12 @@ impl std::fmt::Display for ParserError {
     ErrIdentifierIsNotCallable       = "%s is not callable(it shoud be function or xxx)"
     ErrOnlyClassInstanceHaveProperty = "expr: %s can not get property, only class instance have property"
 */
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum EvalError {
     NotLiteral(Token),
     DivideByZero(String),
     NotSupportedOperator(char),
+    TkIsNotIdent(Token),
     IdentifierNotFound(String),
     IdentifierIsNotCallable(String),
     OnlyClassInstanceHaveProperty(String),
@@ -63,6 +64,7 @@ impl std::fmt::Display for EvalError {
             EvalError::DivideByZero(s) => write!(f, "{}", s),
             EvalError::NotSupportedOperator(c) => write!(f, "operator: {} is not supported", c),
             EvalError::IdentifierNotFound(ident) => write!(f, "identifier: {} is not found", ident),
+            EvalError::TkIsNotIdent(tk) => write!(f, "token: {:?} is not identifier", tk),
             EvalError::IdentifierIsNotCallable(ident) => {
                 write!(f, "{} is not callable(it shoud be function or xxx)", ident)
             }

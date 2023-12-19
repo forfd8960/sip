@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Object {
     Class(String),
     ClassInstance(String),
