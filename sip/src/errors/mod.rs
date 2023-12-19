@@ -1,4 +1,4 @@
-use crate::tokens::Token;
+use crate::{ast::Node, tokens::Token};
 
 #[derive(Debug)]
 pub enum LexerError {
@@ -51,6 +51,7 @@ pub enum EvalError {
     IdentifierNotFound(String),
     IdentifierIsNotCallable(String),
     OnlyClassInstanceHaveProperty(String),
+    UnknowNode(Node),
 }
 
 impl std::error::Error for EvalError {}
@@ -71,6 +72,9 @@ impl std::fmt::Display for EvalError {
                     "callee: {} can not get property, only class instance have property",
                     s
                 )
+            }
+            EvalError::UnknowNode(node) => {
+                write!(f, "unknown node: {:?}", node.clone())
             }
         }
     }

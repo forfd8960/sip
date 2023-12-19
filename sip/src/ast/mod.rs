@@ -26,7 +26,7 @@ pub enum Node {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Program {
-    stmts: Vec<Node>,
+    pub stmts: Vec<Node>,
 }
 
 impl Program {
