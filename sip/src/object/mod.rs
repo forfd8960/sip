@@ -7,6 +7,7 @@ pub enum Object {
     Function(String),
     Integer(i64),
     Float(f64),
+    Number(f64),
     Bool(bool),
     SString(String),
     Return(Rc<Object>),

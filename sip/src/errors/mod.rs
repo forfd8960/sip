@@ -1,4 +1,4 @@
-use crate::{ast::Node, tokens::Token};
+use crate::{ast::Node, object::Object, tokens::Token};
 
 #[derive(Debug)]
 pub enum LexerError {
@@ -46,8 +46,9 @@ impl std::fmt::Display for ParserError {
 #[derive(Debug, PartialEq)]
 pub enum EvalError {
     NotLiteral(Token),
+    NotNumber(Object),
     DivideByZero(String),
-    NotSupportedOperator(char),
+    NotSupportedOperator(Token),
     TkIsNotIdent(Token),
     IdentifierNotFound(String),
     IdentifierIsNotCallable(String),
@@ -61,8 +62,9 @@ impl std::fmt::Display for EvalError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             EvalError::NotLiteral(tk) => write!(f, "{:?}", tk),
+            EvalError::NotNumber(obj) => write!(f, "{:?} is not number", obj),
             EvalError::DivideByZero(s) => write!(f, "{}", s),
-            EvalError::NotSupportedOperator(c) => write!(f, "operator: {} is not supported", c),
+            EvalError::NotSupportedOperator(c) => write!(f, "operator: {:?} is not supported", c),
             EvalError::IdentifierNotFound(ident) => write!(f, "identifier: {} is not found", ident),
             EvalError::TkIsNotIdent(tk) => write!(f, "token: {:?} is not identifier", tk),
             EvalError::IdentifierIsNotCallable(ident) => {

@@ -33,8 +33,10 @@ impl Interpreter {
 
     pub fn eval(&mut self, node: Node) -> Result<Object, EvalError> {
         match node {
+            Node::Null => Ok(Object::Null),
             Node::Literal(tk) => self.eval_literal(tk),
             Node::Assign(name, node) => self.eval_assign(name, node),
+            Node::Binary(left, tk, right) => self.eval_binary(Node::Binary(left, tk, right)),
             _ => Err(EvalError::UnknowNode(node)),
         }
     }
@@ -60,6 +62,61 @@ impl Interpreter {
             }
             _ => Err(EvalError::TkIsNotIdent(name)),
         }
+    }
+
+    fn eval_binary(&mut self, bin: Node) -> Result<Object, EvalError> {
+        match bin {
+            Node::Binary(left, tk, right) => {
+                let l_node = Rc::try_unwrap(left);
+                let left_obj = self.eval(l_node.unwrap())?;
+
+                let r_node = Rc::try_unwrap(right);
+                let right_obj = self.eval(r_node.unwrap())?;
+
+                match tk {
+                    Token::Plus(_) | Token::Minus(_) | Token::Slash(_) | Token::Star(_) => {
+                        self.eval_number(left_obj, tk, right_obj)
+                    }
+                    Token::Lt(_)
+                    | Token::LtEQ(_)
+                    | Token::Gt(_)
+                    | Token::GtEQ(_)
+                    | Token::EQ(_)
+                    | Token::NotEQ(_) => self.eval_compare(left_obj, tk, right_obj),
+                    _ => Err(EvalError::NotSupportedOperator(tk)),
+                }
+            }
+            _ => Err(EvalError::UnknowNode(bin)),
+        }
+    }
+
+    fn eval_compare(&self, left: Object, tk: Token, right: Object) -> Result<Object, EvalError> {
+        Ok(Object::Bool(true))
+    }
+
+    fn eval_number(&self, left: Object, tk: Token, right: Object) -> Result<Object, EvalError> {
+        match tk {
+            Token::Plus(_) => self.eval_plus(left, right),
+            _ => Err(EvalError::NotSupportedOperator(tk)),
+        }
+    }
+
+    fn eval_plus(&self, left: Object, right: Object) -> Result<Object, EvalError> {
+        let mut left_num: f64 = 0.0;
+        let mut right_num: f64 = 0.0;
+        match left {
+            Object::Integer(v) => left_num = v as f64,
+            Object::Float(v) => left_num = v,
+            _ => return Err(EvalError::NotNumber(left)),
+        }
+
+        match right {
+            Object::Integer(v) => right_num = v as f64,
+            Object::Float(v) => left_num = v,
+            _ => return Err(EvalError::NotNumber(right)),
+        }
+
+        Ok(Object::Number(left_num + right_num))
     }
 }
 
