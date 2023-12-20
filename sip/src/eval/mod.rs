@@ -96,12 +96,14 @@ impl Interpreter {
 
     fn eval_number(&self, left: Object, tk: Token, right: Object) -> Result<Object, EvalError> {
         match tk {
-            Token::Plus(_) => self.eval_plus(left, right),
+            Token::Plus(_) | Token::Minus(_) | Token::Slash(_) | Token::Star(_) => {
+                self.eval_num_binary(tk, left, right)
+            }
             _ => Err(EvalError::NotSupportedOperator(tk)),
         }
     }
 
-    fn eval_plus(&self, left: Object, right: Object) -> Result<Object, EvalError> {
+    fn eval_num_binary(&self, tk: Token, left: Object, right: Object) -> Result<Object, EvalError> {
         let mut left_num: f64 = 0.0;
         let mut right_num: f64 = 0.0;
         match left {
@@ -116,7 +118,21 @@ impl Interpreter {
             _ => return Err(EvalError::NotNumber(right)),
         }
 
-        Ok(Object::Number(left_num + right_num))
+        match tk {
+            Token::Plus(_) => Ok(Object::Number(left_num + right_num)),
+            Token::Minus(_) => Ok(Object::Number(left_num - right_num)),
+            Token::Star(_) => Ok(Object::Number(left_num * right_num)),
+            Token::Slash(_) => {
+                if right_num == 0.0 {
+                    return Err(EvalError::DivideByZero(format!(
+                        "right: {:?} num is zero",
+                        right
+                    )));
+                }
+                Ok(Object::Number(left_num / right_num))
+            }
+            _ => return Err(EvalError::NotSupportedOperator(tk)),
+        }
     }
 }
 
@@ -200,5 +216,46 @@ mod tests {
             v.err(),
             Some(EvalError::TkIsNotIdent(Token::SString("x".to_string())))
         );
+    }
+
+    #[test]
+    fn test_eval_binary() {
+        let n = Node::Binary(
+            Rc::new(Node::Literal(Token::Integer(1024))),
+            Token::Plus('+'),
+            Rc::new(Node::Literal(Token::Integer(1024))),
+        );
+        let mut intpter = Interpreter::new();
+        let v = intpter.eval(n);
+        println!("obj: {:?}", v);
+        assert_eq!(v.is_ok(), true);
+        assert_eq!(Object::Number(2048 as f64), v.unwrap());
+
+        let v1 = intpter.eval(Node::Binary(
+            Rc::new(Node::Literal(Token::Integer(1))),
+            Token::Minus('-'),
+            Rc::new(Node::Literal(Token::Integer(100))),
+        ));
+        println!("obj: {:?}", v1);
+        assert_eq!(v1.is_ok(), true);
+        assert_eq!(Object::Number(-99 as f64), v1.unwrap());
+
+        let v1 = intpter.eval(Node::Binary(
+            Rc::new(Node::Literal(Token::Integer(2))),
+            Token::Star('*'),
+            Rc::new(Node::Literal(Token::Integer(256))),
+        ));
+        println!("obj: {:?}", v1);
+        assert_eq!(v1.is_ok(), true);
+        assert_eq!(Object::Number(512 as f64), v1.unwrap());
+
+        let v1 = intpter.eval(Node::Binary(
+            Rc::new(Node::Literal(Token::Integer(2048))),
+            Token::Slash('/'),
+            Rc::new(Node::Literal(Token::Integer(2))),
+        ));
+        println!("2048 / 2 = : {:?}", v1);
+        assert_eq!(v1.is_ok(), true);
+        assert_eq!(Object::Number(1024 as f64), v1.unwrap());
     }
 }
