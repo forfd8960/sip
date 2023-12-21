@@ -47,6 +47,8 @@ impl std::fmt::Display for ParserError {
 pub enum EvalError {
     NotLiteral(Token),
     NotNumber(Object),
+    NotNumberOrStr(Object),
+    DifferObjectToCompare(Object, Object),
     DivideByZero(String),
     NotSupportedOperator(Token),
     TkIsNotIdent(Token),
@@ -54,6 +56,7 @@ pub enum EvalError {
     IdentifierIsNotCallable(String),
     OnlyClassInstanceHaveProperty(String),
     UnknowNode(Node),
+    EmptyNode,
 }
 
 impl std::error::Error for EvalError {}
@@ -63,6 +66,10 @@ impl std::fmt::Display for EvalError {
         match self {
             EvalError::NotLiteral(tk) => write!(f, "{:?}", tk),
             EvalError::NotNumber(obj) => write!(f, "{:?} is not number", obj),
+            EvalError::NotNumberOrStr(obj) => write!(f, "{:?} is not number or string", obj),
+            EvalError::DifferObjectToCompare(obj1, obj2) => {
+                write!(f, "{:?}, {:?} are different", obj1, obj2)
+            }
             EvalError::DivideByZero(s) => write!(f, "{}", s),
             EvalError::NotSupportedOperator(c) => write!(f, "operator: {:?} is not supported", c),
             EvalError::IdentifierNotFound(ident) => write!(f, "identifier: {} is not found", ident),
@@ -79,6 +86,9 @@ impl std::fmt::Display for EvalError {
             }
             EvalError::UnknowNode(node) => {
                 write!(f, "unknown node: {:?}", node.clone())
+            }
+            EvalError::EmptyNode => {
+                write!(f, "empty node")
             }
         }
     }

@@ -36,7 +36,11 @@ impl Interpreter {
             Node::Null => Ok(Object::Null),
             Node::Literal(tk) => self.eval_literal(tk),
             Node::Assign(name, node) => self.eval_assign(name, node),
-            Node::Binary(left, tk, right) => self.eval_binary(Node::Binary(left, tk, right)),
+            Node::Binary(left, tk, right) => {
+                let l = Rc::try_unwrap(left);
+                let r = Rc::try_unwrap(right);
+                self.eval_binary(l.ok(), tk, r.ok())
+            }
             _ => Err(EvalError::UnknowNode(node)),
         }
     }
@@ -64,34 +68,120 @@ impl Interpreter {
         }
     }
 
-    fn eval_binary(&mut self, bin: Node) -> Result<Object, EvalError> {
-        match bin {
-            Node::Binary(left, tk, right) => {
-                let l_node = Rc::try_unwrap(left);
-                let left_obj = self.eval(l_node.unwrap())?;
+    fn eval_binary(
+        &mut self,
+        left: Option<Node>,
+        tk: Token,
+        right: Option<Node>,
+    ) -> Result<Object, EvalError> {
+        let left_node = if let Some(v) = left {
+            v
+        } else {
+            return Err(EvalError::EmptyNode);
+        };
 
-                let r_node = Rc::try_unwrap(right);
-                let right_obj = self.eval(r_node.unwrap())?;
+        let right_node = if let Some(v) = right {
+            v
+        } else {
+            return Err(EvalError::EmptyNode);
+        };
 
-                match tk {
-                    Token::Plus(_) | Token::Minus(_) | Token::Slash(_) | Token::Star(_) => {
-                        self.eval_number(left_obj, tk, right_obj)
-                    }
-                    Token::Lt(_)
-                    | Token::LtEQ(_)
-                    | Token::Gt(_)
-                    | Token::GtEQ(_)
-                    | Token::EQ(_)
-                    | Token::NotEQ(_) => self.eval_compare(left_obj, tk, right_obj),
-                    _ => Err(EvalError::NotSupportedOperator(tk)),
-                }
+        let left_obj = self.eval(left_node)?;
+        let right_obj = self.eval(right_node)?;
+
+        match tk {
+            Token::Plus(_) | Token::Minus(_) | Token::Slash(_) | Token::Star(_) => {
+                self.eval_number(left_obj, tk, right_obj)
             }
-            _ => Err(EvalError::UnknowNode(bin)),
+            Token::Lt(_)
+            | Token::LtEQ(_)
+            | Token::Gt(_)
+            | Token::GtEQ(_)
+            | Token::EQ(_)
+            | Token::NotEQ(_) => self.eval_compare(left_obj, tk, right_obj),
+            _ => Err(EvalError::NotSupportedOperator(tk)),
         }
     }
 
     fn eval_compare(&self, left: Object, tk: Token, right: Object) -> Result<Object, EvalError> {
-        Ok(Object::Bool(true))
+        let mut left_num: f64 = 0.0;
+        let mut is_num: bool = false;
+        let mut is_str: bool = false;
+        let mut left_str = "".to_string();
+        match left {
+            Object::Integer(v) => {
+                left_num = v as f64;
+                is_num = true;
+            }
+            Object::Float(v) => {
+                left_num = v;
+                is_num = true;
+            }
+            Object::SString(ref v) => {
+                left_str = v.clone();
+                is_str = true;
+            }
+            _ => return Err(EvalError::NotNumberOrStr(left)),
+        };
+
+        let mut right_num: f64 = 0.0;
+        let mut right_str = "".to_string();
+        match right {
+            Object::Integer(v) => {
+                right_num = v as f64;
+                if !is_num {
+                    return Err(EvalError::DifferObjectToCompare(left, right));
+                }
+
+                self.eval_compare_num(tk, left_num, right_num)
+            }
+            Object::Float(v) => {
+                right_num = v;
+                if !is_num {
+                    return Err(EvalError::DifferObjectToCompare(left, right));
+                }
+
+                self.eval_compare_num(tk, left_num, right_num)
+            }
+            Object::SString(ref v) => {
+                right_str = v.clone();
+                if !is_str {
+                    return Err(EvalError::DifferObjectToCompare(left, right));
+                }
+
+                self.eval_compare_str(tk, left_str, right_str)
+            }
+            _ => return Err(EvalError::NotNumberOrStr(right)),
+        }
+    }
+
+    fn eval_compare_num(&self, tk: Token, left: f64, right: f64) -> Result<Object, EvalError> {
+        match tk {
+            Token::Lt(_) => Ok(Object::Bool(left < right)),
+            Token::LtEQ(_) => Ok(Object::Bool(left <= right)),
+            Token::Gt(_) => Ok(Object::Bool(left > right)),
+            Token::GtEQ(_) => Ok(Object::Bool(left >= right)),
+            Token::EQ(_) => Ok(Object::Bool(left == right)),
+            Token::NotEQ(_) => Ok(Object::Bool(left != right)),
+            _ => Err(EvalError::NotSupportedOperator(tk)),
+        }
+    }
+
+    fn eval_compare_str(
+        &self,
+        tk: Token,
+        left: String,
+        right: String,
+    ) -> Result<Object, EvalError> {
+        match tk {
+            Token::Lt(_) => Ok(Object::Bool(left < right)),
+            Token::LtEQ(_) => Ok(Object::Bool(left <= right)),
+            Token::Gt(_) => Ok(Object::Bool(left > right)),
+            Token::GtEQ(_) => Ok(Object::Bool(left >= right)),
+            Token::EQ(_) => Ok(Object::Bool(left == right)),
+            Token::NotEQ(_) => Ok(Object::Bool(left != right)),
+            _ => Err(EvalError::NotSupportedOperator(tk)),
+        }
     }
 
     fn eval_number(&self, left: Object, tk: Token, right: Object) -> Result<Object, EvalError> {
@@ -257,5 +347,68 @@ mod tests {
         println!("2048 / 2 = : {:?}", v1);
         assert_eq!(v1.is_ok(), true);
         assert_eq!(Object::Number(1024 as f64), v1.unwrap());
+    }
+
+    #[test]
+    fn test_eval_compare() {
+        let nodes = vec![
+            Node::Binary(
+                Rc::new(Node::Literal(Token::Integer(1024))),
+                Token::Lt("<".to_string()),
+                Rc::new(Node::Literal(Token::Integer(1024))),
+            ),
+            Node::Binary(
+                Rc::new(Node::Literal(Token::Integer(1000))),
+                Token::LtEQ("<=".to_string()),
+                Rc::new(Node::Literal(Token::Integer(1024))),
+            ),
+            Node::Binary(
+                Rc::new(Node::Literal(Token::SString("abc".to_string()))),
+                Token::Gt(">".to_string()),
+                Rc::new(Node::Literal(Token::SString("xyz".to_string()))),
+            ),
+            Node::Binary(
+                Rc::new(Node::Literal(Token::SString("def".to_string()))),
+                Token::GtEQ(">=".to_string()),
+                Rc::new(Node::Literal(Token::SString("abc".to_string()))),
+            ),
+        ];
+
+        let mut intpter = Interpreter::new();
+        let expect_result = vec![
+            Object::Bool(false),
+            Object::Bool(true),
+            Object::Bool(false),
+            Object::Bool(true),
+        ];
+
+        let mut idx = 0;
+        for n in nodes {
+            let v = intpter.eval(n);
+            println!("obj: {:?}", v);
+            assert_eq!(v.is_ok(), true);
+            assert_eq!(expect_result[idx], v.unwrap());
+            idx += 1;
+        }
+    }
+
+    #[test]
+    fn test_eval_compare_err() {
+        let n = Node::Binary(
+            Rc::new(Node::Literal(Token::SString("def".to_string()))),
+            Token::GtEQ(">=".to_string()),
+            Rc::new(Node::Literal(Token::Integer(1024))),
+        );
+        let mut intpter = Interpreter::new();
+        let v = intpter.eval(n);
+        println!("obj: {:?}", v);
+        assert_eq!(v.is_err(), true);
+        assert_eq!(
+            v.err(),
+            Some(EvalError::DifferObjectToCompare(
+                Object::SString("def".to_string()),
+                Object::Integer(1024)
+            ))
+        );
     }
 }
