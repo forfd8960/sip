@@ -47,6 +47,7 @@ impl std::fmt::Display for ParserError {
 pub enum EvalError {
     NotLiteral(Token),
     NotNumber(Object),
+    NotIdent(Token),
     NotNumberOrStr(Object),
     DifferObjectToCompare(Object, Object),
     DivideByZero(String),
@@ -66,6 +67,7 @@ impl std::fmt::Display for EvalError {
         match self {
             EvalError::NotLiteral(tk) => write!(f, "{:?}", tk),
             EvalError::NotNumber(obj) => write!(f, "{:?} is not number", obj),
+            EvalError::NotIdent(tk) => write!(f, "{:?} is not identifier", tk),
             EvalError::NotNumberOrStr(obj) => write!(f, "{:?} is not number or string", obj),
             EvalError::DifferObjectToCompare(obj1, obj2) => {
                 write!(f, "{:?}, {:?} are different", obj1, obj2)

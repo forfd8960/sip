@@ -19,6 +19,9 @@ impl Interpreter {
         }
     }
 
+    fn set_value(&mut self, key: String, val: Object) {
+        self.env.insert(key, val);
+    }
     pub fn get_value(&self, key: String) -> Option<&Object> {
         self.env.get(&key)
     }
@@ -35,6 +38,10 @@ impl Interpreter {
         match node {
             Node::Null => Ok(Object::Null),
             Node::Literal(tk) => self.eval_literal(tk),
+            Node::VarStmt(tk, value) => {
+                let node = Rc::try_unwrap(value);
+                self.eval_var_stmt(tk, node.ok().unwrap())
+            }
             Node::Assign(name, node) => self.eval_assign(name, node),
             Node::Binary(left, tk, right) => {
                 let l = Rc::try_unwrap(left);
@@ -56,12 +63,23 @@ impl Interpreter {
         }
     }
 
+    fn eval_var_stmt(&mut self, tk: Token, value: Node) -> Result<Object, EvalError> {
+        match tk {
+            Token::Ident(v) => {
+                let final_val = self.eval(value)?;
+                self.set_value(v, final_val.clone());
+                Ok(final_val)
+            }
+            _ => Err(EvalError::NotIdent(tk)),
+        }
+    }
+
     fn eval_assign(&mut self, name: Token, value: Rc<Node>) -> Result<Object, EvalError> {
         match name {
             Token::Ident(ident) => {
                 let node = Rc::try_unwrap(value);
                 let val = self.eval(node.unwrap())?;
-                self.env.insert(ident, val.clone());
+                self.set_value(ident, val.clone());
                 Ok(val)
             }
             _ => Err(EvalError::TkIsNotIdent(name)),
@@ -409,6 +427,39 @@ mod tests {
                 Object::SString("def".to_string()),
                 Object::Integer(1024)
             ))
+        );
+    }
+
+    #[test]
+    fn test_eval_var_stmt() {
+        let n = Node::VarStmt(
+            Token::Ident("x".to_string()),
+            Rc::new(Node::Literal(Token::Integer(1024))),
+        );
+        let mut intpter = Interpreter::new();
+        let v = intpter.eval(n);
+        println!("obj: {:?}", v);
+        assert_eq!(v.is_ok(), true);
+        assert_eq!(Object::Integer(1024), v.unwrap());
+
+        let x_v = intpter.get_value("x".to_string());
+        println!("x_v: {:?}", x_v);
+        assert_eq!(Some(&Object::Integer(1024)), x_v);
+    }
+
+    #[test]
+    fn test_eval_var_stmt1() {
+        let n = Node::VarStmt(
+            Token::SString("x".to_string()),
+            Rc::new(Node::Literal(Token::Integer(1024))),
+        );
+        let mut intpter = Interpreter::new();
+        let v = intpter.eval(n);
+        println!("obj: {:?}", v);
+        assert_eq!(v.is_err(), true);
+        assert_eq!(
+            Some(EvalError::NotIdent(Token::SString("x".to_string()))),
+            v.err()
         );
     }
 }
