@@ -55,7 +55,6 @@ impl Lexer {
 
     fn next_token(&mut self) -> Result<Token, LexerError> {
         let ch = self.advance();
-        println!("next token: ch: {}", ch);
 
         match ch {
             ' ' | '\n' | '\t' | '\r' => Ok(Token::WhiteSpace),

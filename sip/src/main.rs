@@ -7,6 +7,7 @@ mod parser;
 mod tokens;
 use lexer::Lexer;
 use std::env;
+use std::io::Write;
 
 use crate::{eval::Interpreter, parser::Parser};
 
@@ -23,7 +24,8 @@ fn main() {
         }
     }
 
-    println!("Hello, world!");
+    println!("Hello, sip!, type code and run");
+    run_interactive_eval();
 }
 
 fn read_program(path: String) -> Result<String, std::io::Error> {
@@ -63,25 +65,26 @@ fn run_interactive_eval() {
 
     loop {
         print!(">>>");
+        std::io::stdout().flush().unwrap();
+
         let mut buf = String::new();
         match std::io::stdin().read_line(&mut buf) {
             Ok(_) => {
                 let mut lexer = Lexer::new(buf);
                 let tokens = lexer.scan_tokens();
-                println!("{:?}", tokens);
+                println!("tokens: {:?}", tokens);
                 match tokens {
                     Ok(tks) => {
                         let mut p = Parser::new(tks);
                         let program_res = p.parse();
                         if program_res.is_err() {
                             println!("parser err: {:?}", program_res.err());
-                            return;
+                            continue;
                         }
 
-                        println!("{:?}", program_res);
+                        println!("program: {:?}", program_res);
                         let result = interpreter.eval_program(program_res.ok().unwrap());
                         println!("result: {:?}", result);
-                        return;
                     }
                     Err(e) => {
                         println!("lexer err: {:?}", e);
@@ -89,7 +92,7 @@ fn run_interactive_eval() {
                 }
             }
             Err(e) => {
-                println!("{:?}", e);
+                println!("read line err: {:?}", e);
             }
         }
     }
