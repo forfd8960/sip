@@ -157,70 +157,98 @@ impl Parser {
     }
 
     fn or(&mut self) -> Result<Node, ParserError> {
-        let res = self.and()?;
-        if self.match_tk(TokenType::Or) {
-            let op = self.previous();
-            let exp = self.and()?;
+        let mut res = self.and()?;
+        loop {
+            if self.match_tk(TokenType::Or) {
+                let op = self.previous();
+                let exp = self.and()?;
 
-            return Ok(Node::Logical(Rc::new(res), op, Rc::new(exp)));
+                res = Node::Logical(Rc::new(res), op, Rc::new(exp));
+                continue;
+            }
+            break;
         }
 
         Ok(res)
     }
 
     fn and(&mut self) -> Result<Node, ParserError> {
-        let exp = self.equality()?;
-        if self.match_tk(TokenType::And) {
-            let op = self.previous();
-            let r_exp = self.equality()?;
-            return Ok(Node::Logical(Rc::new(exp), op, Rc::new(r_exp)));
+        let mut exp = self.equality()?;
+        loop {
+            if self.match_tk(TokenType::And) {
+                let op = self.previous();
+                let r_exp = self.equality()?;
+                exp = Node::Logical(Rc::new(exp), op, Rc::new(r_exp));
+                continue;
+            }
+
+            break;
         }
         Ok(exp)
     }
 
     fn equality(&mut self) -> Result<Node, ParserError> {
-        let exp = self.comparison()?;
-        if self.match_tks(vec![TokenType::EQ, TokenType::NotEQ]) {
-            let op = self.previous();
-            let r_exp = self.comparison()?;
-            return Ok(Node::Binary(Rc::new(exp), op, Rc::new(r_exp)));
+        let mut exp = self.comparison()?;
+        loop {
+            if self.match_tks(vec![TokenType::EQ, TokenType::NotEQ]) {
+                let op = self.previous();
+                let r_exp = self.comparison()?;
+                exp = Node::Binary(Rc::new(exp), op, Rc::new(r_exp));
+                continue;
+            }
+
+            break;
         }
         Ok(exp)
     }
 
     fn comparison(&mut self) -> Result<Node, ParserError> {
-        let exp = self.term()?;
-        if self.match_tks(vec![
-            TokenType::Lt,
-            TokenType::LtEQ,
-            TokenType::Gt,
-            TokenType::GtEQ,
-            TokenType::EQ,
-            TokenType::NotEQ,
-        ]) {
-            let op = self.previous();
-            let r_exp = self.term()?;
-            return Ok(Node::Binary(Rc::new(exp), op, Rc::new(r_exp)));
+        let mut exp = self.term()?;
+        loop {
+            if self.match_tks(vec![
+                TokenType::Lt,
+                TokenType::LtEQ,
+                TokenType::Gt,
+                TokenType::GtEQ,
+                TokenType::EQ,
+                TokenType::NotEQ,
+            ]) {
+                let op = self.previous();
+                let r_exp = self.term()?;
+                exp = Node::Binary(Rc::new(exp), op, Rc::new(r_exp));
+                continue;
+            }
+            break;
         }
         Ok(exp)
     }
 
     fn term(&mut self) -> Result<Node, ParserError> {
-        let exp = self.factor()?;
-        if self.match_tks(vec![TokenType::Plus, TokenType::Minus]) {
-            let op = self.previous();
-            let r_exp = self.factor()?;
-            return Ok(Node::Binary(Rc::new(exp), op, Rc::new(r_exp)));
+        let mut exp = self.factor()?;
+        loop {
+            if self.match_tks(vec![TokenType::Plus, TokenType::Minus]) {
+                let op = self.previous();
+                let r_exp = self.factor()?;
+                exp = Node::Binary(Rc::new(exp), op, Rc::new(r_exp));
+            } else {
+                break;
+            }
         }
+
         Ok(exp)
     }
 
     fn factor(&mut self) -> Result<Node, ParserError> {
-        let exp = self.unary()?;
-        if self.match_tks(vec![TokenType::Slash, TokenType::Star]) {
-            let op = self.previous();
-            let r_exp = self.unary()?;
-            return Ok(Node::Binary(Rc::new(exp), op, Rc::new(r_exp)));
+        let mut exp = self.unary()?;
+        loop {
+            if self.match_tks(vec![TokenType::Slash, TokenType::Star]) {
+                let op = self.previous();
+                let r_exp = self.unary()?;
+                exp = Node::Binary(Rc::new(exp), op, Rc::new(r_exp));
+                continue;
+            }
+
+            break;
         }
 
         Ok(exp)

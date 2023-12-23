@@ -216,13 +216,15 @@ impl Interpreter {
         let mut right_num: f64 = 0.0;
         match left {
             Object::Integer(v) => left_num = v as f64,
+            Object::Number(v) => left_num = v,
             Object::Float(v) => left_num = v,
             _ => return Err(EvalError::NotNumber(left)),
         }
 
         match right {
             Object::Integer(v) => right_num = v as f64,
-            Object::Float(v) => left_num = v,
+            Object::Number(v) => right_num = v,
+            Object::Float(v) => right_num = v,
             _ => return Err(EvalError::NotNumber(right)),
         }
 
