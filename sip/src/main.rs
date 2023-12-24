@@ -84,7 +84,12 @@ fn run_interactive_eval() {
 
                         println!("program: {:?}", program_res);
                         let result = interpreter.eval_program(program_res.ok().unwrap());
-                        println!("result: {:?}", result);
+                        if result.is_err() {
+                            println!("eval err: {:?}", result.err());
+                            continue;
+                        }
+
+                        println!("{}", result.ok().unwrap());
                     }
                     Err(e) => {
                         println!("lexer err: {:?}", e);
