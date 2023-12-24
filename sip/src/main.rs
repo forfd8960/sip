@@ -92,7 +92,7 @@ fn run_interactive_eval() {
                         println!("{}", result.ok().unwrap());
                     }
                     Err(e) => {
-                        println!("lexer err: {:?}", e);
+                        println!("failed to eval: {:?}", e);
                     }
                 }
             }
