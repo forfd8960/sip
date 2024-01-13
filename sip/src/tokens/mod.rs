@@ -10,12 +10,13 @@ pub enum Token {
     False,
 
     Var,   // keyword: var
-    Print, // keyword: print
+    Print, // keyword: print()
     If,
     Else,
     For,
     While,
     Return,
+    Def, // def
 
     Assign(char), // =
     Plus(char),   // +
@@ -46,7 +47,6 @@ pub enum Token {
     NotEQ(String), // !=
 
     EOF,
-
     Unkown,
 }
 
@@ -83,6 +83,7 @@ pub enum TokenType {
     For,
     Return,
     While,
+    Def,
     LBrace,
     RBrace,
 }
@@ -118,6 +119,7 @@ impl Token {
             Token::For => TokenType::For,
             Token::While => TokenType::While,
             Token::Return => TokenType::Return,
+            Token::Def => TokenType::Def,
             Token::LBrace(_) => TokenType::LBrace,
             Token::RBrace(_) => TokenType::RBrace,
             _ => TokenType::Unkown,
@@ -136,6 +138,7 @@ pub fn get_keyword(kw: &str) -> Option<Token> {
         "while" => Some(Token::While),
         "return" => Some(Token::Return),
         "print" => Some(Token::Print),
+        "def" => Some(Token::Def),
         _ => None,
     }
 }

@@ -24,6 +24,7 @@ impl fmt::Display for Object {
             Object::Float(v) => write!(f, "{}", v),
             Object::Number(v) => write!(f, "{}", v),
             Object::SString(v) => write!(f, "{}", v),
+            Object::Bool(v) => write!(f, "{}", v),
             _ => write!(f, "{:?}", self),
         }
     }

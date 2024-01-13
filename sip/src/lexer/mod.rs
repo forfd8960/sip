@@ -385,7 +385,7 @@ mod tests {
 
     #[test]
     fn test_scan_keyword_tokens1() {
-        let input = "if else for while return";
+        let input = "if else for while return def";
 
         let mut lexer = Lexer::new(input.to_string());
         let tokens_res = lexer.scan_tokens();
@@ -399,6 +399,7 @@ mod tests {
                 Token::For,
                 Token::While,
                 Token::Return,
+                Token::Def,
                 Token::EOF,
             ],
             tokens_res.unwrap()

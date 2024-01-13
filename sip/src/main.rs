@@ -85,14 +85,14 @@ fn run_interactive_eval() {
                         println!("program: {:?}", program_res);
                         let result = interpreter.eval_program(program_res.ok().unwrap());
                         if result.is_err() {
-                            println!("eval err: {:?}", result.err());
+                            println!("failed to eval: {:?}", result.err());
                             continue;
                         }
 
                         println!("{}", result.ok().unwrap());
                     }
                     Err(e) => {
-                        println!("failed to eval: {:?}", e);
+                        println!("lexer err: {}", e);
                     }
                 }
             }
