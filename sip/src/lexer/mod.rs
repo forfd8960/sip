@@ -4,24 +4,15 @@ use crate::{
 };
 
 pub struct Lexer {
-    text: String,
     chars: Vec<char>,
     start: usize,
     current: usize,
-}
-
-fn is_white_space(ch: char) -> bool {
-    match ch {
-        '\n' | '\t' | '\r' | ' ' => true,
-        _ => false,
-    }
 }
 
 impl Lexer {
     pub fn new(text: String) -> Self {
         let text_clone = text.clone();
         Self {
-            text: text,
             start: 0 as usize,
             current: 0 as usize,
             chars: text_clone.chars().collect(),
@@ -37,15 +28,11 @@ impl Lexer {
             }
 
             self.start = self.current;
-            let tk_result = self.next_token();
-            match tk_result {
-                Ok(Token::WhiteSpace) => {}
-                Ok(tk) => {
+            let tk = self.next_token()?;
+            match tk {
+                Token::WhiteSpace => {}
+                _ => {
                     tokens.push(tk.clone());
-                }
-
-                Err(e) => {
-                    return Err(e);
                 }
             }
         }

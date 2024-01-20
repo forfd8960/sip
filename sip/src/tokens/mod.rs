@@ -1,3 +1,5 @@
+pub mod token1;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     Null,
