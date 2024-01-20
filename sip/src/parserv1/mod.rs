@@ -323,3 +323,32 @@ impl Parser {
         self.tokens[self.current].clone()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        astv1::{self, Program},
+        parserv1::Parser,
+        tokens::Token,
+    };
+
+    #[test]
+    fn test_parse_var() {
+        let mut parser = Parser::new(vec![
+            Token::Var,
+            Token::Ident("x".to_string()),
+            Token::Assign('='),
+            Token::Integer(100),
+            Token::EOF,
+        ]);
+        let res = parser.parse();
+        assert_eq!(res.is_ok(), true);
+
+        let stmt = &res.unwrap().stmts[0];
+        let var_stmt = stmt.as_var().unwrap();
+        assert_eq!(var_stmt.name, Token::Ident("x".to_string()));
+
+        let value = var_stmt.value.as_literal().unwrap();
+        assert_eq!(value.literal, Token::Integer(100));
+    }
+}

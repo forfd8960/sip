@@ -112,6 +112,9 @@ impl Assign {
 }
 
 impl Node for Assign {
+    fn typ(&self) -> NodeType {
+        NodeType::Assign
+    }
     fn as_assign(&self) -> Option<Assign> {
         Some(self.clone())
     }
@@ -181,6 +184,9 @@ impl Binary {
 }
 
 impl Node for Binary {
+    fn typ(&self) -> NodeType {
+        NodeType::Binary
+    }
     fn as_binary(&self) -> Option<Binary> {
         Some(self.clone())
     }
@@ -202,6 +208,9 @@ impl Unary {
 }
 
 impl Node for Unary {
+    fn typ(&self) -> NodeType {
+        NodeType::Unary
+    }
     fn as_unary(&self) -> Option<Unary> {
         Some(self.clone())
     }
@@ -219,6 +228,9 @@ impl Literal {
 }
 
 impl Node for Literal {
+    fn typ(&self) -> NodeType {
+        NodeType::Literal
+    }
     fn as_literal(&self) -> Option<Literal> {
         Some(self.clone())
     }
@@ -238,6 +250,9 @@ impl Group {
 }
 
 impl Node for Group {
+    fn typ(&self) -> NodeType {
+        NodeType::Group
+    }
     fn as_group(&self) -> Option<Group> {
         Some(self.clone())
     }
@@ -259,6 +274,10 @@ impl Block {
 }
 
 impl Node for Block {
+    fn typ(&self) -> NodeType {
+        NodeType::Block
+    }
+
     fn as_block(&self) -> Option<Block> {
         Some(self.clone())
     }

@@ -1,4 +1,4 @@
-use crate::{ast::Node, object::Object, tokens::Token};
+use crate::{ast::Node, astv1::NodeType, object::Object, tokens::Token};
 
 #[derive(Debug)]
 pub enum LexerError {
@@ -57,6 +57,7 @@ pub enum EvalError {
     IdentifierIsNotCallable(String),
     OnlyClassInstanceHaveProperty(String),
     UnknowNode(Node),
+    UnknowNode1(NodeType),
     EmptyNode,
 }
 
@@ -88,6 +89,9 @@ impl std::fmt::Display for EvalError {
             }
             EvalError::UnknowNode(node) => {
                 write!(f, "unknown node: {:?}", node.clone())
+            }
+            EvalError::UnknowNode1(nd_typ) => {
+                write!(f, "unknown node: {:?}", nd_typ)
             }
             EvalError::EmptyNode => {
                 write!(f, "empty node")

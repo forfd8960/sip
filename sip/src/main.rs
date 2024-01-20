@@ -2,6 +2,7 @@ mod ast;
 mod astv1;
 mod errors;
 mod eval;
+mod eval1;
 mod lexer;
 mod object;
 mod parser;
