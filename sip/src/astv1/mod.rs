@@ -264,7 +264,20 @@ impl Node for Block {
     }
 }
 
+#[derive(Clone)]
 pub struct Null {}
+
+impl Null {
+    pub fn new() -> Self {
+        Null {}
+    }
+}
+
+impl Node for Null {
+    fn as_null(&self) -> Option<Null> {
+        Some(self.clone())
+    }
+}
 
 pub struct Program {
     pub stmts: Vec<Box<dyn Node>>,
