@@ -1,12 +1,9 @@
 mod ast;
-mod astv1;
 mod errors;
 mod eval;
-mod eval1;
 mod lexer;
 mod object;
 mod parser;
-mod parserv1;
 mod tokens;
 use lexer::Lexer;
 use std::env;

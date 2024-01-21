@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
 use crate::{
-    ast::Node,
     ast::Program,
+    ast::{self, Node},
     errors::ParserError,
     tokens::{Token, TokenType},
 };
@@ -58,7 +58,7 @@ impl Parser {
             init_expr = self.parse_expr()?;
         }
 
-        Ok(Node::VarStmt(ident, Rc::new(init_expr)))
+        Ok(Node::VarStmt(ast::VarStmt::new(ident, init_expr)))
     }
 
     fn parse_stmt(&mut self) -> Result<Node, ParserError> {
@@ -147,7 +147,7 @@ impl Parser {
         if self.match_tk(TokenType::Assign) {
             let value = self.assignment()?;
             let res = match exp {
-                Node::Identifier(ident) => Ok(Node::Assign(ident, Rc::new(value))),
+                Node::Identifier(ident) => Ok(Node::Assign(ast::Assign::new(ident, value))),
                 _ => Err(ParserError::NotSupportedToken(Token::Unkown)),
             };
             return res;
@@ -336,7 +336,11 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::Parser;
-    use crate::{ast::Node, ast::Program, tokens::Token};
+    use crate::{
+        ast::Node,
+        ast::{self, Program},
+        tokens::Token,
+    };
     use std::rc::Rc;
 
     #[test]
@@ -352,10 +356,10 @@ mod tests {
         println!("parse result: {:?}", res);
         assert_eq!(res.is_ok(), true);
         assert_eq!(
-            Program::new(vec![Node::VarStmt(
+            Program::new(vec![Node::VarStmt(ast::VarStmt::new(
                 Token::Ident("x".to_string()),
-                Rc::new(Node::Literal(Token::Integer(100)))
-            )]),
+                Node::Literal(Token::Integer(100))
+            ))]),
             res.unwrap()
         );
     }

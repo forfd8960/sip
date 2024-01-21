@@ -38,11 +38,14 @@ impl Interpreter {
         match node {
             Node::Null => Ok(Object::Null),
             Node::Literal(tk) => self.eval_literal(tk),
-            Node::VarStmt(tk, value) => {
-                let node = Rc::try_unwrap(value);
-                self.eval_var_stmt(tk, node.ok().unwrap())
+            Node::VarStmt(var_stmt) => {
+                let node = (*var_stmt.value).clone();
+                self.eval_var_stmt(var_stmt.name, node)
             }
-            Node::Assign(name, node) => self.eval_assign(name, node),
+            Node::Assign(assign) => {
+                let node: Node = (*assign.value).clone();
+                self.eval_assign(assign.name, node)
+            }
             Node::Binary(left, tk, right) => {
                 let l = Rc::try_unwrap(left);
                 let r = Rc::try_unwrap(right);
@@ -74,11 +77,10 @@ impl Interpreter {
         }
     }
 
-    fn eval_assign(&mut self, name: Token, value: Rc<Node>) -> Result<Object, EvalError> {
+    fn eval_assign(&mut self, name: Token, value: Node) -> Result<Object, EvalError> {
         match name {
             Token::Ident(ident) => {
-                let node = Rc::try_unwrap(value);
-                let val = self.eval(node.unwrap())?;
+                let val = self.eval(value)?;
                 self.set_value(ident, val.clone());
                 Ok(val)
             }
@@ -248,7 +250,13 @@ impl Interpreter {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ast::Node, errors::EvalError, eval::Interpreter, object::Object, tokens::Token};
+    use crate::{
+        ast::{self, Node},
+        errors::EvalError,
+        eval::Interpreter,
+        object::Object,
+        tokens::Token,
+    };
     use std::rc::Rc;
 
     #[test]
@@ -298,10 +306,10 @@ mod tests {
 
     #[test]
     fn test_eval_assign() {
-        let n = Node::Assign(
+        let n = Node::Assign(ast::Assign::new(
             Token::Ident("x".to_string()),
-            Rc::new(Node::Literal(Token::Integer(1024))),
-        );
+            Node::Literal(Token::Integer(1024)),
+        ));
         let mut intpter = Interpreter::new();
         let v = intpter.eval(n);
         assert_eq!(v.is_ok(), true);
@@ -315,10 +323,10 @@ mod tests {
 
     #[test]
     fn test_eval_assign1() {
-        let n = Node::Assign(
-            Token::SString("x".to_string()),
-            Rc::new(Node::Literal(Token::Integer(1024))),
-        );
+        let n = Node::Assign(ast::Assign::new(
+            Token::Integer(1),
+            Node::Literal(Token::Integer(1024)),
+        ));
         let mut intpter = Interpreter::new();
         let v = intpter.eval(n);
         assert_eq!(v.is_err(), true);
@@ -434,10 +442,10 @@ mod tests {
 
     #[test]
     fn test_eval_var_stmt() {
-        let n = Node::VarStmt(
+        let n = Node::VarStmt(ast::VarStmt::new(
             Token::Ident("x".to_string()),
-            Rc::new(Node::Literal(Token::Integer(1024))),
-        );
+            Node::Literal(Token::Integer(1024)),
+        ));
         let mut intpter = Interpreter::new();
         let v = intpter.eval(n);
         println!("obj: {:?}", v);
@@ -451,10 +459,10 @@ mod tests {
 
     #[test]
     fn test_eval_var_stmt1() {
-        let n = Node::VarStmt(
-            Token::SString("x".to_string()),
-            Rc::new(Node::Literal(Token::Integer(1024))),
-        );
+        let n = Node::VarStmt(ast::VarStmt::new(
+            Token::Integer(1),
+            Node::Literal(Token::Integer(1024)),
+        ));
         let mut intpter = Interpreter::new();
         let v = intpter.eval(n);
         println!("obj: {:?}", v);
