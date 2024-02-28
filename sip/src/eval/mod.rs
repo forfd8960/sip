@@ -243,7 +243,7 @@ impl Interpreter {
                 }
                 Ok(Object::Number(left_num / right_num))
             }
-            _ => return Err(EvalError::NotSupportedOperator(tk)),
+            _ => Err(EvalError::NotSupportedOperator(tk)),
         }
     }
 }

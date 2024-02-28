@@ -118,7 +118,8 @@ impl Parser {
     }
 
     fn parse_return(&mut self) -> Result<Node, ParserError> {
-        Ok(Node::Null)
+        let ret_val = self.parse_expr()?;
+        Ok(Node::Return(Rc::new(ret_val)))
     }
 
     fn parse_block(&mut self) -> Result<Node, ParserError> {
@@ -230,9 +231,10 @@ impl Parser {
                 let op = self.previous();
                 let r_exp = self.factor()?;
                 exp = Node::Binary(Rc::new(exp), op, Rc::new(r_exp));
-            } else {
-                break;
+                continue;
             }
+
+            break;
         }
 
         Ok(exp)
