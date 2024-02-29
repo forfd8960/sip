@@ -48,9 +48,13 @@ impl Interpreter {
                 self.eval_assign(assign.name, node)
             }
             Node::Binary(left, tk, right) => {
-                let l = Rc::try_unwrap(left);
-                let r = Rc::try_unwrap(right);
-                self.eval_binary(l.ok(), tk, r.ok())
+                let ln = (*left).clone();
+                let rn = (*right).clone();
+                self.eval_binary(ln, tk, rn)
+            }
+            Node::Return(ret) => {
+                let node = (*ret.value).clone();
+                self.eval_return(node)
             }
             _ => Err(EvalError::UnknowNode(node)),
         }
@@ -102,26 +106,9 @@ impl Interpreter {
         }
     }
 
-    fn eval_binary(
-        &mut self,
-        left: Option<Node>,
-        tk: Token,
-        right: Option<Node>,
-    ) -> Result<Object, EvalError> {
-        let left_node = if let Some(v) = left {
-            v
-        } else {
-            return Err(EvalError::EmptyNode);
-        };
-
-        let right_node = if let Some(v) = right {
-            v
-        } else {
-            return Err(EvalError::EmptyNode);
-        };
-
-        let left_obj = self.eval(left_node)?;
-        let right_obj = self.eval(right_node)?;
+    fn eval_binary(&mut self, left: Node, tk: Token, right: Node) -> Result<Object, EvalError> {
+        let left_obj = self.eval(left)?;
+        let right_obj = self.eval(right)?;
 
         match tk {
             Token::Plus(_) | Token::Minus(_) | Token::Slash(_) | Token::Star(_) => {
@@ -259,6 +246,11 @@ impl Interpreter {
             }
             _ => Err(EvalError::NotSupportedOperator(tk)),
         }
+    }
+
+    fn eval_return(&mut self, ret_value: Node) -> Result<Object, EvalError> {
+        let obj = self.eval(ret_value)?;
+        Ok(Object::Return(Rc::new(obj)))
     }
 }
 
