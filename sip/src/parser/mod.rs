@@ -260,7 +260,7 @@ impl Parser {
         if self.match_tks(vec![TokenType::Minus, TokenType::Bang]) {
             let op = self.previous();
             let val = self.unary()?;
-            return Ok(Node::Unary(op, Rc::new(val)));
+            return Ok(Node::Unary(ast::Unary::new(op, val)));
         }
         self.primary()
     }

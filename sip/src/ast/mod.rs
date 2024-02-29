@@ -1,4 +1,7 @@
-use crate::tokens::{self, Token};
+use crate::{
+    parser,
+    tokens::{self, Token},
+};
 use std::rc::Rc;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -15,7 +18,7 @@ pub enum Node {
     Binary(Rc<Node>, tokens::Token, Rc<Node>),
 
     // op, value, -1, !true
-    Unary(tokens::Token, Rc<Node>),
+    Unary(Unary),
     ExpressionStmt(Rc<Node>),
     // interger, string, true, false, etc
     Literal(tokens::Token),
@@ -106,7 +109,7 @@ impl Binary {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Unary {
     pub op: Token,
     pub right: Rc<Node>,

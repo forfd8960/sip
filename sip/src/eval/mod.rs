@@ -38,6 +38,10 @@ impl Interpreter {
         match node {
             Node::Null => Ok(Object::Null),
             Node::Literal(tk) => self.eval_literal(tk),
+            Node::Unary(unary) => {
+                let node = (*unary.right).clone();
+                self.eval_unary(unary.op, node)
+            }
             Node::VarStmt(var_stmt) => {
                 let node = (*var_stmt.value).clone();
                 self.eval_var_stmt(var_stmt.name, node)
@@ -67,6 +71,27 @@ impl Interpreter {
             Token::SString(v) => Ok(Object::SString(v)),
             Token::True => Ok(Object::Bool(true)),
             Token::False => Ok(Object::Bool(false)),
+            _ => Err(EvalError::NotLiteral(tk)),
+        }
+    }
+
+    fn eval_unary(&mut self, tk: Token, node: Node) -> Result<Object, EvalError> {
+        match tk {
+            Token::Bang => {
+                let value = self.eval(node)?;
+                match value {
+                    Object::Bool(v) => Ok(Object::Bool(!v)),
+                    _ => Err(EvalError::NotLiteral(tk)),
+                }
+            }
+            Token::Minus(_) => {
+                let value = self.eval(node)?;
+                match value {
+                    Object::Integer(v) => Ok(Object::Integer(-v)),
+                    Object::Float(v) => Ok(Object::Float(-v)),
+                    _ => Err(EvalError::NotLiteral(tk)),
+                }
+            }
             _ => Err(EvalError::NotLiteral(tk)),
         }
     }
