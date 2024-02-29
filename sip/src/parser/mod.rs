@@ -119,7 +119,7 @@ impl Parser {
 
     fn parse_return(&mut self) -> Result<Node, ParserError> {
         let ret_val = self.parse_expr()?;
-        Ok(Node::Return(Rc::new(ret_val)))
+        Ok(Node::Return(ast::Return::new(ret_val)))
     }
 
     fn parse_block(&mut self) -> Result<Node, ParserError> {

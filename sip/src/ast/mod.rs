@@ -20,7 +20,7 @@ pub enum Node {
     // interger, string, true, false, etc
     Literal(tokens::Token),
     Group(Rc<Node>),
-    Return(Rc<Node>),
+    Return(Return),
     Block(Vec<Node>),
     Null,
 }
@@ -145,7 +145,7 @@ impl Group {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Return {
     pub value: Rc<Node>,
 }

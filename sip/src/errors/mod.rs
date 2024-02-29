@@ -53,7 +53,7 @@ pub enum EvalError {
     DivideByZero(String),
     NotSupportedOperator(Token),
     TkIsNotIdent(Token),
-    IdentifierNotFound(String),
+    IdentNotFound(String),
     IdentifierIsNotCallable(String),
     OnlyClassInstanceHaveProperty(String),
     UnknowNode(Node),
@@ -74,7 +74,7 @@ impl std::fmt::Display for EvalError {
             }
             EvalError::DivideByZero(s) => write!(f, "{}", s),
             EvalError::NotSupportedOperator(c) => write!(f, "operator: {:?} is not supported", c),
-            EvalError::IdentifierNotFound(ident) => write!(f, "identifier: {} is not found", ident),
+            EvalError::IdentNotFound(ident) => write!(f, "identifier: {} is not found", ident),
             EvalError::TkIsNotIdent(tk) => write!(f, "token: {:?} is not identifier", tk),
             EvalError::IdentifierIsNotCallable(ident) => {
                 write!(f, "{} is not callable(it shoud be function or xxx)", ident)

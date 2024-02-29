@@ -42,6 +42,7 @@ impl Interpreter {
                 let node = (*var_stmt.value).clone();
                 self.eval_var_stmt(var_stmt.name, node)
             }
+            Node::Identifier(x) => self.eval_identifier(x),
             Node::Assign(assign) => {
                 let node: Node = (*assign.value).clone();
                 self.eval_assign(assign.name, node)
@@ -72,6 +73,19 @@ impl Interpreter {
                 let final_val = self.eval(value)?;
                 self.set_value(v, final_val.clone());
                 Ok(final_val)
+            }
+            _ => Err(EvalError::NotIdent(tk)),
+        }
+    }
+
+    fn eval_identifier(&mut self, tk: Token) -> Result<Object, EvalError> {
+        match tk {
+            Token::Ident(ident) => {
+                if let Some(v) = self.get_value(ident.clone()) {
+                    return Ok(v.clone());
+                } else {
+                    return Err(EvalError::IdentNotFound(ident));
+                }
             }
             _ => Err(EvalError::NotIdent(tk)),
         }
