@@ -49,6 +49,7 @@ pub enum EvalError {
     NotNumber(Object),
     NotIdent(Token),
     NotNumberOrStr(Object),
+    NotTruthCond(Object),
     DifferObjectToCompare(Object, Object),
     DivideByZero(String),
     NotSupportedOperator(Token),
@@ -69,6 +70,7 @@ impl std::fmt::Display for EvalError {
             EvalError::NotNumber(obj) => write!(f, "{:?} is not number", obj),
             EvalError::NotIdent(tk) => write!(f, "{:?} is not identifier", tk),
             EvalError::NotNumberOrStr(obj) => write!(f, "{:?} is not number or string", obj),
+            EvalError::NotTruthCond(obj) => write!(f, "{:?} is not truth condition", obj),
             EvalError::DifferObjectToCompare(obj1, obj2) => {
                 write!(f, "{:?}, {:?} are different", obj1, obj2)
             }

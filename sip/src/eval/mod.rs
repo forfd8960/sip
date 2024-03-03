@@ -46,6 +46,12 @@ impl Interpreter {
                 let node = (*var_stmt.value).clone();
                 self.eval_var_stmt(var_stmt.name, node)
             }
+            Node::IfStmt(cond, then_stmt, else_stmt) => {
+                let cond_node = (*cond).clone();
+                let then_node = (*then_stmt).clone();
+                let else_node = (*else_stmt).clone();
+                self.eval_if(cond_node, then_node, else_node)
+            }
             Node::Identifier(x) => self.eval_identifier(x),
             Node::Assign(assign) => {
                 let node: Node = (*assign.value).clone();
@@ -104,6 +110,20 @@ impl Interpreter {
                 Ok(final_val)
             }
             _ => Err(EvalError::NotIdent(tk)),
+        }
+    }
+
+    fn eval_if(&mut self, cond: Node, then: Node, else_node: Node) -> Result<Object, EvalError> {
+        let truth = self.eval(cond)?;
+        match truth {
+            Object::Bool(v) => {
+                if v {
+                    self.eval(then)
+                } else {
+                    self.eval(else_node)
+                }
+            }
+            _ => Err(EvalError::NotTruthCond(truth)),
         }
     }
 
