@@ -52,6 +52,7 @@ impl Interpreter {
                 let else_node = (*else_stmt).clone();
                 self.eval_if(cond_node, then_node, else_node)
             }
+            Node::Block(stmts) => self.eval_block(stmts),
             Node::Identifier(x) => self.eval_identifier(x),
             Node::Assign(assign) => {
                 let node: Node = (*assign.value).clone();
@@ -125,6 +126,15 @@ impl Interpreter {
             }
             _ => Err(EvalError::NotTruthCond(truth)),
         }
+    }
+
+    fn eval_block(&mut self, stms: Vec<Node>) -> Result<Object, EvalError> {
+        let mut obj = Object::Null;
+        for stmt in stms {
+            obj = self.eval(stmt)?;
+        }
+
+        Ok(obj)
     }
 
     fn eval_identifier(&mut self, tk: Token) -> Result<Object, EvalError> {
